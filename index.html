@@ -7,12 +7,11 @@
     <meta name="author" content="ANIA">
     <title>Assistant Déclaration de Conformité ANIA 2025 - Version Complète</title>
     
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
@@ -21,7 +20,6 @@
 <body>
     <div class="app-container">
         <header>
-            <div class="logo-placeholder"></div>
             <div>
                 <h1>Assistant Déclaration de Conformité ANIA 2025</h1>
                 <p>Déclaration conforme au Règlement (CE) n°1935/2004 et aux exigences DGCCRF</p>
@@ -100,6 +98,9 @@
                 <div class="top-nav-buttons">
                     <button type="button" id="prev-btn" class="btn btn-secondary">
                         <span class="material-symbols-outlined">arrow_back</span>Précédent
+                    </button>
+                    <button type="button" id="save-progress-btn" class="btn btn-secondary">
+                        <span class="material-symbols-outlined">save</span>Sauvegarder
                     </button>
                     <button type="button" id="next-btn" class="btn btn-primary">
                         Suivant<span class="material-symbols-outlined">arrow_forward</span>
@@ -1233,81 +1234,6 @@
                             </div>
                         </section>
 
-                        <!-- SECTION 9: SIGNATURE -->
-                        <section class="section" id="section-9" data-step="9">
-                            <h2>9. Signature et validité</h2>
-                            
-                            <div class="guidance-box">
-                                <p><strong>Engagement du signataire :</strong> La signature engage la responsabilité du déclarant quant à l'exactitude des informations fournies dans cette déclaration.</p>
-                                <p><strong>Objectif :</strong> Formaliser la déclaration de conformité par la signature du responsable, conformément aux exigences de l'article 16 du Règlement (CE) n°1935/2004.</p>
-                            </div>
-                            
-                            <div class="warning-box">
-                                <p><strong>Validité de la déclaration :</strong> Cette déclaration est valide uniquement pour le matériau ou l'objet tel que livré (emballage vide), et tant qu'il n'y a pas de :</p>
-                                <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.8;">
-                                    <li>Modification réglementaire pertinente</li>
-                                    <li>Changement susceptible d'entraîner une modification de l'inertie du matériau</li>
-                                    <li>Modification dans la composition ou la structure</li>
-                                </ul>
-                                <p style="margin-top: 1rem;"><strong>Durée recommandée :</strong> La DGCCRF propose une durée de 5 ans maximum pour la validité des rapports d'essais.</p>
-                            </div>
-                            
-                            <div class="vigilance-box">
-                                <p><strong>⚠ RESPONSABILITÉ DE L'UTILISATEUR :</strong> En cas de changement des caractéristiques du produit emballé, de sa composition ou de sa destination, ainsi que dans le cas d'une modification des conditions de mise en œuvre du matériau ou de l'objet, <strong>la personne destinataire de la présente déclaration doit s'assurer de la compatibilité contenant/contenu</strong> dont elle assume alors seul la responsabilité.</p>
-                                <p><strong>Point de vigilance:</strong> la DGGCRF propose une durée de 5 ans maximum pour la durée de validité des rapports d'essais; si des changements susceptibles d'entraîner une modification de l'inertie du matériau sont intervenus pendant cette période, les essais doivent être refaits.</p>
-                            </div>
-                            
-                            <div class="grid-2-cols" style="margin-top: 2rem;">
-                                <div class="form-group">
-                                    <div class="label-container">
-                                        <label for="doc-location">Fait à <span class="required">*</span></label>
-                                    </div>
-                                    <input type="text" id="doc-location" name="doc-location" placeholder="Ex: Paris" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <div class="label-container">
-                                        <label for="doc-date">Le <span class="required">*</span></label>
-                                    </div>
-                                    <input type="date" id="doc-date" name="doc-date" required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Validité estimée de cette déclaration :</label>
-                                <i class="help-icon">?
-                                    <span class="tooltip">La validité d'une DC dépend des modifications apportées à l'article ou de son utilisation, ou encore des évolutions réglementaires ou des conditions de réalisation des tests de migration. ou de la réglementation ou si modification des conditions d'analyses de migration. La publication d'un amendement n'entraîne pas de mise à jour de la DC dès lors qu'il n'a pas d'impact sur l'objet de la déclaration.</span>
-                                </i>
-                                <div class="grid-2-cols">
-                                    <input type="date" name="validity-start" placeholder="Date de début">
-                                    <input type="date" name="validity-end" placeholder="Date de fin (suggérée : 5 ans)">
-                                </div>
-                            </div>
-                            
-                            <h3>
-                                <span class="material-symbols-outlined">draw</span>
-                                Signature du déclarant
-                            </h3>
-                            
-                            <div class="warning-box">
-                                <p><strong>Information importante :</strong> La personne signataire doit être habilitée à le faire. Dessinez votre signature dans le cadre ci-dessous.</p>
-                            </div>
-                            
-                            <div style="text-align: center; margin: 2rem 0;">
-                                <canvas id="signature-pad" width="500" height="200"></canvas>
-                            </div>
-                            
-                            <div style="text-align: center; margin-bottom: 2rem;">
-                                <button type="button" id="clear-signature-btn" class="btn btn-secondary">
-                                    <span class="material-symbols-outlined">refresh</span>Effacer la signature
-                                </button>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Notes finales ou informations complémentaires :</label>
-                                <textarea name="final-notes" rows="4" placeholder="Ex: Conditions particulières de stockage, précautions d'emploi, restrictions d'usage supplémentaires..."></textarea>
-                            </div>
-                        </section>
                             </main>        
         <footer class="action-bar">
             <div class="action-bar-left">
@@ -1443,7 +1369,6 @@
         </tr>
     </template>
 
-    <script src="logo.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
