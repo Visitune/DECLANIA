@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Un assistant pour générer des déclarations de conformité pour les matériaux au contact des denrées alimentaires, conforme au Règlement (CE) n°1935/2004.">
+    <meta name="author" content="ANIA">
+    <title>Assistant Déclaration de Conformité ANIA 2025 - Version Complète</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-placeholder"></div>
+            <div>
+                <h1>Assistant Déclaration de Conformité ANIA 2025</h1>
+                <p>Déclaration conforme au Règlement (CE) n°1935/2004 et aux exigences DGCCRF</p>
+            </div>
+        </header>
+        
+        <main class="main-content">
+            <nav id="stepper-nav">
+                <ul>
+                    <li data-step="1" class="active">
+                        <div class="step-number">1</div>
+                        <div>
+                            <span class="step-title">Déclarant</span>
+                            <span class="step-subtitle">Identité de l'exploitant établissant la déclaration</span>
+                        </div>
+                    </li>
+                    <li data-step="2">
+                        <div class="step-number">2</div>
+                        <div>
+                            <span class="step-title">Fabricant</span>
+                            <span class="step-subtitle">Identité du fabricant ou importateur</span>
+                        </div>
+                    </li>
+                    <li data-step="3">
+                        <div class="step-number">3</div>
+                        <div>
+                            <span class="step-title">Matériau</span>
+                            <span class="step-subtitle">Identification et composition détaillée</span>
+                        </div>
+                    </li>
+                    <li data-step="4">
+                        <div class="step-number">4</div>
+                        <div>
+                            <span class="step-title">Barrière Fonctionnelle</span>
+                            <span class="step-subtitle">Multicouches et barrières</span>
+                        </div>
+                    </li>
+                    <li data-step="5">
+                        <div class="step-number">5</div>
+                        <div>
+                            <span class="step-title">Utilisation</span>
+                            <span class="step-subtitle">Conditions de contact et tests</span>
+                        </div>
+                    </li>
+                    <li data-step="6">
+                        <div class="step-number">6</div>
+                        <div>
+                            <span class="step-title">Réglementation</span>
+                            <span class="step-subtitle">Références textes applicables</span>
+                        </div>
+                    </li>
+                    <li data-step="7">
+                        <div class="step-number">7</div>
+                        <div>
+                            <span class="step-title">Substances & Analyses</span>
+                            <span class="step-subtitle">Restrictions et évaluations</span>
+                        </div>
+                    </li>
+                    <li data-step="8">
+                        <div class="step-number">8</div>
+                        <div>
+                            <span class="step-title">Pièces Jointes</span>
+                            <span class="step-subtitle">Documents justificatifs</span>
+                        </div>
+                    </li>
+                    <li data-step="9">
+                        <div class="step-number">9</div>
+                        <div>
+                            <span class="step-title">Signature</span>
+                            <span class="step-subtitle">Validation et finalisation</span>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="form-content">
+                <div class="top-nav-buttons">
+                    <button type="button" id="prev-btn" class="btn btn-secondary">
+                        <span class="material-symbols-outlined">arrow_back</span>Précédent
+                    </button>
+                    <button type="button" id="next-btn" class="btn btn-primary">
+                        Suivant<span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </div>
+                <form id="declaration-form">
+                        <!-- SECTION 1: DECLARANT -->
+                        <section class="section active" id="section-1" data-step="1">
+                            <h2>1. Identité de l'exploitant qui établit la déclaration</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Informations obligatoires :</strong> Cette section concerne la personne et l'entreprise qui établissent cette déclaration de conformité. Le signataire doit être officiellement mandaté par son entreprise.</p>
+                                <p><strong>Objectif :</strong> Identifier clairement l'entité responsable de la déclaration de conformité, avec les coordonnées du représentant légal habilité à signer ce document réglementaire.</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Point de vigilance :</strong> La fonction du signataire doit être pertinente pour l'établissement de ce document (ex: Responsable Qualité, Responsable Réglementaire, et non un commercial ou marketeur).</p>
+                                <p><strong>Exigence réglementaire :</strong> Selon l'article 16 du Règlement (CE) n°1935/2004, le déclarant doit pouvoir fournir sur demande les informations permettant d'identifier clairement le responsable de la déclaration.</p>
+                            </div>
+
+                            <h3>
+                                <span class="material-symbols-outlined">person</span>
+                                Informations sur le signataire
+                            </h3>
+
+                            <div class="grid-3-cols">
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="declarant-civility">Civilité <span class="required">*</span></label>
+                                    </div>
+                                    <select id="declarant-civility" name="declarant-civility" required>
+                                        <option value="">Sélectionnez...</option>
+                                        <option value="Madame">Madame</option>
+                                        <option value="Monsieur">Monsieur</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="declarant-lastname">Nom <span class="required">*</span></label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Le nom de famille du signataire de la déclaration. Cette personne doit être clairement mandatée par son entreprise pour remplir et signer ce document réglementaire.</span>
+                                        </i>
+                                    </div>
+                                    <input type="text" id="declarant-lastname" name="declarant-lastname" placeholder="Ex: Dupont" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="declarant-firstname">Prénom <span class="required">*</span></label>
+                                    </div>
+                                    <input type="text" id="declarant-firstname" name="declarant-firstname" placeholder="Ex: Jean" required>
+                                </div>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">business</span>
+                                Informations sur la société déclarante
+                            </h3>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="declarant-company">Nom de la société <span class="required">*</span></label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">La raison sociale complète de l'entreprise qui établit cette déclaration. Il s'agit généralement du fabricant, du transformateur ou de l'importateur du matériau ou objet au contact alimentaire.</span>
+                                    </i>
+                                </div>
+                                <input type="text" id="declarant-company" name="declarant-company" placeholder="Ex: Emballages Alimentaires Pro SA" required>
+                            </div>
+                                
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="declarant-address">Adresse complète de la société <span class="required">*</span></label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">Adresse du siège social ou de l'établissement qui établit la déclaration. Incluez : numéro et rue, code postal, ville et pays.</span>
+                                    </i>
+                                </div>
+                                <textarea id="declarant-address" name="declarant-address" placeholder="Ex: 123 Rue de l'Innovation&#10;75001 Paris&#10;France" required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="declarant-function">Fonction du signataire <span class="required">*</span></label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">La fonction du signataire doit être pertinente pour l'établissement de ce document (ex: Responsable Qualité, Responsable Réglementaire).</span>
+                                    </i>
+                                </div>
+                                <input type="text" id="declarant-function" name="declarant-function" placeholder="Ex: Responsable Qualité" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="declarant-siret">Numéro SIRET <span class="required">*</span></label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">Le numéro SIRET de l'établissement qui établit la déclaration. Ce numéro permet d'identifier de manière unique l'établissement dans les registres officiels.</span>
+                                    </i>
+                                </div>
+                                <input type="text" id="declarant-siret" name="declarant-siret" placeholder="Ex: 123 456 789 01234" required>
+                            </div>
+                            
+                            <div class="grid-2-cols">
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="declarant-phone">Téléphone</label>
+                                    </div>
+                                    <input type="text" id="declarant-phone" name="declarant-phone" placeholder="Ex: +33 1 23 45 67 89">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="declarant-email">Email de contact</label>
+                                    </div>
+                                    <input type="email" id="declarant-email" name="declarant-email" placeholder="Ex: qualite@entreprise.fr">
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 2: FABRICANT/IMPORTATEUR -->
+                        <section class="section" id="section-2" data-step="2">
+                            <h2>2. Identité de l'exploitant qui fabrique ou importe le matériau/objet</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Information importante :</strong> Cette section n'est à remplir <strong>que si</strong> le fabricant ou l'importateur est différent de l'exploitant qui a établi la déclaration (Section 1).</p>
+                                <p>Si vous êtes à la fois le déclarant et le fabricant/importateur, cochez simplement la case ci-dessous.</p>
+                                <p><strong>Objectif :</strong> Identifier clairement l'entité responsable de la fabrication ou de l'importation du matériau/objet, conformément aux exigences de traçabilité du Règlement (CE) n°1935/2004.</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Point de vigilance réglementaire :</strong> Selon l'article 16 du Règlement (CE) n°1935/2004, les informations permettant d'identifier clairement le fabricant ou l'importateur doivent être disponibles sur demande des autorités compétentes.</p>
+                                <p><strong>Exigence de traçabilité :</strong> La chaîne d'approvisionnement complète doit être traçable, de la matière première au produit fini, pour garantir la sécurité des consommateurs.</p>
+                            </div>
+                            
+                            
+                            <div class="form-group checkbox-group" style="background-color: #e3f2fd; padding: 1rem; border-radius: 8px;">
+                                <input type="checkbox" id="same-as-declarant" name="same-as-declarant">
+                                <label for="same-as-declarant"><strong>Le fabricant/importateur est le même que le déclarant (Section 1)</strong></label>
+                            </div>
+                            
+                            <div id="fabricant-fields">
+                                <h3>
+                                    <span class="material-symbols-outlined">factory</span>
+                                    Informations sur le fabricant/importateur
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="fabricant-siret">Numéro SIRET</label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Le numéro SIRET de l'établissement qui fabrique ou importe le matériau/objet. Ce numéro permet d'identifier de manière unique l'établissement dans les registres officiels.</span>
+                                        </i>
+                                    </div>
+                                    <input type="text" id="fabricant-siret" name="fabricant-siret" placeholder="Ex: 123 456 789 01234">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="fabricant-type">Type d'exploitant</label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Précisez s'il s'agit du fabricant du matériau/objet ou de l'importateur sur le territoire européen. Cette information est importante pour la traçabilité réglementaire. A remplir seulement si le fabricant ou l'importateur est différent de l'exploitant qui établit la déclaration.</span>
+                                        </i>
+                                    </div>
+                                    <select id="fabricant-type" name="fabricant-type">
+                                        <option value="">Sélectionnez...</option>
+                                        <option value="Fabricant">Fabricant</option>
+                                        <option value="Importateur">Importateur</option>
+                                        <option value="Fabricant et Importateur">Fabricant et Importateur</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="fabricant-company">Nom de la société</label>
+                                    </div>
+                                    <input type="text" id="fabricant-company" name="fabricant-company" placeholder="Ex: Manufacturing International Ltd">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="fabricant-address">Adresse complète de la société</label>
+                                    </div>
+                                    <textarea id="fabricant-address" name="fabricant-address" placeholder="Ex: 45 Industrial Park Road&#10;12345 Hamburg&#10;Allemagne"></textarea>
+                                </div>
+                                
+                                <div class="grid-2-cols">
+                                    <div class="form-group">
+                                        <div class="label-container">
+                                            <label for="fabricant-phone">Téléphone</label>
+                                        </div>
+                                        <input type="text" id="fabricant-phone" name="fabricant-phone" placeholder="Ex: +49 40 12345678">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <div class="label-container">
+                                            <label for="fabricant-email">Email de contact</label>
+                                        </div>
+                                        <input type="email" id="fabricant-email" name="fabricant-email" placeholder="Ex: contact@manufacturer.com">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 3: IDENTIFICATION MATERIAU -->
+                        <section class="section" id="section-3" data-step="3">
+                            <h2>3. Identification du matériau et/ou objet faisant l'objet de la déclaration</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Principe fondamental :</strong> Le matériau ou l'objet doit être clairement décrit et identifiable. La désignation doit être traçable, également dans les documentations internes telles que les rapports d'analyse.</p>
+                                <p><strong>Une photo ou un schéma est fortement recommandé</strong> pour faciliter l'identification visuelle du produit.</p>
+                                <p><strong>Objectif :</strong> Permettre une identification univoque du matériau/objet concerné par cette déclaration, conformément aux exigences de l'article 16 du Règlement (CE) n°1935/2004.</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Point de vigilance CRITIQUE :</strong> Une déclaration de conformité doit <strong>toujours englober l'ensemble des matériaux et objets</strong> destinés à entrer en contact avec les denrées alimentaires tel qu'il est livré. Pour un emballage avec plusieurs structures (ex: boîte céréales = sachet + boîte carton), une DC par structure doit être délivrée.</p>
+                                <p><strong>Exigence de traçabilité :</strong> Selon l'article 16 du Règlement (CE) n°1935/2004, les informations permettant d'identifier clairement le matériau/objet concerné doivent être disponibles sur demande des autorités compétentes.</p>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">description</span>
+                                Description générale
+                            </h3>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="material-description">Description précise et traçable du matériau/objet <span class="required">*</span></label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip"><strong>Description détaillée requise :</strong> Précisez le type d'objet (barquette, film, couvercle, etc.), sa structure (monocouche, multicouche), les matériaux principaux, la forme, les dimensions approximatives, la couleur, et toute caractéristique distinctive. Le matériau et/ou l'objet doit être clairement décrit et identifiable, éventuellement accompagné d'une photo. La désignation doit être traçable, également dans les documentations internes tels que rapports d'analyses.</span>
+                                    </i>
+                                </div>
+                                <textarea id="material-description" name="material-description" rows="4" placeholder="Ex: Barquette thermoformée rectangulaire en polypropylène multicouche (PP/EVOH/PE) transparent, dimensions approximatives 180x120x45mm, destinée au conditionnement de produits frais sous atmosphère modifiée. Film de scellage complexe PE/PA thermoformable." required></textarea>
+                            </div>
+                            
+                            <div class="grid-2-cols">
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="material-ref">Référence commerciale ou client <span class="required">*</span></label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Le numéro d'article de référence du fournisseur tel que communiqué au client. Il peut s'agir du nom de marque, référence commerciale, code article. Cette référence doit permettre l'identification unique du produit. Les fiches techniques ne sont pas liées à une seule référence.</span>
+                                        </i>
+                                    </div>
+                                    <input type="text" id="material-ref" name="material-ref" placeholder="Ex: REF-BAR-2024-456B" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="material-batch">Lot ou série (si applicable)</label>
+                                    </div>
+                                    <input type="text" id="material-batch" name="material-batch" placeholder="Ex: SÉRIE-A / Lots 2024-001 à 2024-150">
+                                </div>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">layers</span>
+                                Composition structurelle détaillée
+                            </h3>
+                            
+                            <div class="warning-box">
+                                <p><strong>Important :</strong> Si l'emballage est composé de plusieurs éléments <strong>inséparables</strong>, un seul tableau doit être rempli. Si l'emballage est composé d'éléments <strong>séparables</strong> (ex: corps + couvercle), ce tableau peut être dupliqué pour chaque composant.</p>
+                                <button type="button" class="btn btn-secondary" id="duplicate-composition-btn">
+                                    <span class="material-symbols-outlined">add_box</span>Dupliquer le tableau de composition
+                                </button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="material-type">Type de structure <span class="required">*</span></label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">Précisez s'il s'agit d'un matériau monomatériau (une seule couche d'un seul type de matériau), d'un plastique multicouche (plusieurs couches de plastique), ou d'un multimatériau multicouche (couches de matériaux de nature différente dont au moins une en plastique). Définitions selon Règlement (UE) 2025/351.</span>
+                                    </i>
+                                </div>
+                                <select id="material-type" name="material-type" required>
+                                    <option value="">Sélectionnez...</option>
+                                    <option value="Monomatériau monocouche">Monomatériau monocouche</option>
+                                    <option value="Plastique multicouche">Plastique multicouche (≥2 couches plastique)</option>
+                                    <option value="Multimatériau multicouche">Multimatériau multicouche (≥2 matériaux différents dont ≥1 plastique)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label>Composition du matériau</label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip"><strong>Pour les multicouches :</strong> Précisez les composants de l'intérieur (au contact de l'aliment) vers l'extérieur. Exemple : PE / Adhésif / EVOH / Adhésif / PP. Indiquez les types de matériaux (et non les références commerciales). Pour chaque couche, précisez si possible l'épaisseur, la fonction (barrière, soudure, rigidité), et tout additif particulier.</span>
+                                    </i>
+                                </div>
+                            </div>
+                            
+                            <table class="data-table" id="composition-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">N° Couche</th>
+                                        <th style="width: 200px;">Type de matériau/Description <span class="required">*</span></th>
+                                        <th style="width: 150px;">Épaisseur (µm)</th>
+                                        <th style="width: 250px;">Informations complémentaires (fonction, additifs, etc.)</th>
+                                        <th style="width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="composition-tbody">
+                                    <tr>
+                                        <td><input type="text" class="layer-number" value="1" readonly style="text-align: center; background-color: #f8f9fa;"></td>
+                                        <td><input type="text" class="layer-type" placeholder="Ex: PE (Polyéthylène)" required></td>
+                                        <td><input type="number" class="layer-thickness" placeholder="Ex: 20" step="0.1"></td>
+                                        <td><textarea class="layer-info" placeholder="Ex: Couche de soudure, contact alimentaire direct"></textarea></td>
+                                        <td><button type="button" class="remove-row-btn" title="Supprimer cette couche"><span class="material-symbols-outlined">delete</span></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary" id="add-composition-btn">
+                                <span class="material-symbols-outlined">add</span>Ajouter une couche
+                            </button>
+                            
+                            <div class="form-group" style="margin-top: 2rem;">
+                                <div class="label-container">
+                                    <label for="material-assembly">Montage de l'emballage (collage, soudure, assemblage)</label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">Décrivez comment l'emballage est assemblé : présence de points de colle (type de colle), zones de soudure, éléments mécaniques (clips, agrafes), etc. Cette information est importante car les colles et systèmes d'assemblage doivent également être conformes.</span>
+                                    </i>
+                                </div>
+                                <textarea id="material-assembly" name="material-assembly" rows="3" placeholder="Ex: Assemblage par soudure thermique sur 3 côtés. Pas de colle. Film de scellage soudé à chaud sur la barquette après remplissage."></textarea>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 4: BARRIERE FONCTIONNELLE -->
+                        <section class="section" id="section-4" data-step="4">
+                            <h2>4. Barrière fonctionnelle (dans le cas des matériaux multicouches)</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Définition :</strong> Une barrière fonctionnelle est une couche qui empêche la migration de substances provenant d'autres couches vers la denrée alimentaire. Elle permet l'utilisation de matériaux recyclés ou de substances non autorisées dans les couches non au contact, sous conditions strictes.</p>
+                                <p><strong>Référence :</strong> Articles 13 et 14 du Règlement (UE) n°10/2011, modifié par le Règlement (UE) 2025/351.</p>
+                                <p><strong>Objectif :</strong> Permettre l'utilisation de matériaux recyclés ou de substances non autorisées dans les couches non au contact alimentaire, tout en garantissant la sécurité des consommateurs.</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ ATTENTION :</strong> Ne cocher les cases ci-dessous qu'après avoir vérifié qu'aucune substance CMR (cancérogène, mutagène, reprotoxique - sections 3.5, 3.6 et 3.7 de l'annexe I du règlement CLP) ou nanoparticule (recommandation Commission 18/10/2011) n'est présente dans les couches derrière la barrière.</p>
+                                <p><strong>Point de vigilance pour l'utilisateur:</strong> vérifier si la case est cochée qu'une barrière fonctionnelle est bien prévu avec ce matériau.</p>
+                                <p><strong>Exigence de sécurité :</strong> Selon l'article 13 du Règlement (UE) n°10/2011, la migration résiduelle des substances non autorisées à travers la barrière fonctionnelle ne doit pas dépasser 0,01 mg/kg de denrée.</p>
+                            </div>
+                            
+                            <div class="form-group checkbox-group" style="background-color: #f0f0f0; padding: 1rem; border-radius: 8px;">
+                                <input type="checkbox" id="no-bf-concerned" name="no-bf-concerned">
+                                <label for="no-bf-concerned"><strong>Non concerné par une barrière fonctionnelle</strong></label>
+                            </div>
+                            
+                            <div id="bf-fields">
+                                <h3>
+                                    <span class="material-symbols-outlined">shield</span>
+                                    Configuration de la barrière fonctionnelle
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label>Type de matériau avec barrière fonctionnelle :</label>
+                                    
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="bf-plastic-multi" name="bf-type[]" value="plastic-multi">
+                                        <label for="bf-plastic-multi">Plastiques multicouches (article 13 § 2, 3 et 4 du Règlement UE n°10/2011)</label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Matériaux composés de deux ou plusieurs couches de matière plastique. La barrière fonctionnelle permet d'utiliser des substances non autorisées ou du plastique recyclé dans les couches non au contact.</span>
+                                        </i>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="bf-multi-material" name="bf-type[]" value="multi-material">
+                                        <label for="bf-multi-material">Multimatériaux multicouches (article 14 § 2 et 3 du Règlement UE n°10/2011)</label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Matériaux composés de deux ou plusieurs couches de matériaux de nature différente, dont au moins une couche en matière plastique.</span>
+                                        </i>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="bf-only-behind" name="bf-only-behind">
+                                        <label for="bf-only-behind"><strong>Le matériau faisant l'objet de cette déclaration doit être utilisé UNIQUEMENT derrière une barrière fonctionnelle</strong></label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip"><strong>IMPORTANT :</strong> Si cette case est cochée, le matériau N'EST PAS apte au contact direct avec les denrées alimentaires. Il doit obligatoirement être placé derrière une barrière fonctionnelle fournie par le client/utilisateur. Cocher la case si c'est le cas (matériau non apte au contact direct).</span>
+                                        </i>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="bf-other-material" name="bf-other-material">
+                                        <label for="bf-other-material">Autres matériaux avec barrière</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group" id="bf-other-details" style="display: none;">
+                                    <div class="label-container">
+                                        <label for="bf-other-description">Précisez les autres matériaux :</label>
+                                    </div>
+                                    <textarea id="bf-other-description" name="bf-other-description" rows="3" placeholder="Ex: Papier-carton avec couche barrière aluminium..."></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="bf-layer-description">Description de la couche barrière fonctionnelle</label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Indiquez quelle couche fait office de barrière fonctionnelle dans la structure multicouche (référence au tableau de composition de la section 3). Précisez le matériau constituant la barrière et son épaisseur.</span>
+                                        </i>
+                                    </div>
+                                    <textarea id="bf-layer-description" name="bf-layer-description" rows="3" placeholder="Ex: Couche n°3 - EVOH 12µm - assure la fonction barrière contre la migration depuis les couches externes"></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="bf-compliance-test">Vérification de l'efficacité de la barrière</label>
+                                        <i class="help-icon">?
+                                            <span class="tooltip">Décrivez comment l'efficacité de la barrière fonctionnelle a été vérifiée : tests de migration spécifique, calculs de modélisation, données fournisseurs, etc. La migration résiduelle doit être < 0,01 mg/kg de denrée pour les substances non autorisées.</span>
+                                        </i>
+                                    </div>
+                                    <textarea id="bf-compliance-test" name="bf-compliance-test" rows="3" placeholder="Ex: Tests de migration réalisés selon EN 13130-1, migration résiduelle < 0,01 mg/kg (limite de détection)"></textarea>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 5: CONDITIONS UTILISATION -->
+                        <section class="section" id="section-5" data-step="5">
+                            <h2>5. Informations relatives à l'utilisation finale du matériau ou de l'objet</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Section critique :</strong> Ici doivent être précisées <strong>toutes les conditions</strong> dans lesquelles le matériau ou objet est apte au contact alimentaire. Toute restriction ou limitation doit être clairement indiquée.</p>
+                                <p>Ces informations permettent à l'utilisateur final de vérifier que ses conditions réelles d'utilisation correspondent bien aux conditions pour lesquelles la conformité a été établie.</p>
+                                <p><strong>Objectif :</strong> Définir clairement le périmètre d'utilisation du matériau/objet pour lequel la conformité a été établie, conformément aux exigences de l'article 5 du Règlement (CE) n°1935/2004.</p>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">child_care</span>
+                                Population cible
+                            </h3>
+                            
+                            <div class="form-group">
+                                <label>Matériau ou objet destiné à l'alimentation infantile ?</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip"><strong>Définition importante :</strong> L'alimentation infantile concerne les denrées destinées aux nourrissons et enfants en bas âge (< 3 ans). Des exigences spécifiques plus strictes s'appliquent (migration globale exprimée en mg/kg, tests spécifiques). Conditions de vérification différentes selon Règlement (UE) 10/2011. Si concerné, il faut indiquer la migration globale en mg/kg de denrée en rapport avec le ratio réel surface / volume (à noter : la limite du règlement 10/2011 qui s'applique aux plastiques est < 60 mg/kg).</span>
+                                </i>
+                                <div style="display: flex; gap: 2rem; margin-top: 0.5rem;">
+                                    <div class="checkbox-group">
+                                        <input type="radio" id="infant-yes" name="infant-food" value="yes">
+                                        <label for="infant-yes">Oui</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="radio" id="infant-no" name="infant-food" value="no" checked>
+                                        <label for="infant-no">Non</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="infant-mg-info" style="display: none;" class="warning-box">
+                                <p><strong>Alimentation infantile :</strong> Vous devez indiquer la migration globale en mg/kg de denrée en rapport avec le ratio réel surface/volume. Pour les plastiques : limite < 60 mg/kg (Règlement 10/2011).</p>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">restaurant</span>
+                                Type de denrées alimentaires en contact
+                            </h3>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Point de vigilance utilisateur :</strong> Vérifier que la denrée réellement conditionnée dans l'emballage pour lequel la DoC est requise correspond bien à l'une des catégories cochées. En cas de doute, contacter le fournisseur.</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group" style="background-color: #e3f2fd; padding: 1rem; border-radius: 8px;">
+                                    <input type="checkbox" id="all-food-types" name="all-food-types">
+                                    <label for="all-food-types"><strong>Tous types de denrées (usage universel)</strong></label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Ou sélectionnez les types de denrées spécifiques :</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Cochez toutes les catégories de denrées pour lesquelles la conformité alimentaire est garantie. Référence : Règlement (UE) n°10/2011 Annexe III. Si une catégorie n'est pas explicitement listée, elle peut être précisée dans "Autres denrées". Pour les plastiques, vous pouvez aussi indiquer le numéro de catégorie (1 à 5). Pour les denrées non identifiées dans les réglements plastiques : on assimile les fruits et légumes (frais et entiers) à des denrées sèches; - les glaces alimentaires et les denrées congelées/surgelées font l'objet de catégories distinctes à cocher. A noter qu'il est aussi possible de réaliser les tests de vérification des LMS directement sur les denrées (ces tests prévalent sur les précédents). Attention aux matériaux ou objets destinés à l'alimentation infantile (à préciser).</span>
+                                </i>
+                                
+                                <div class="grid-2-cols" style="margin-top: 1rem;">
+                                    <div>
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" name="food-type[]" value="dry" id="ft-dry">
+                                            <label for="ft-dry">Denrées sèches et assimilées</label>
+                                            <i class="help-icon">?
+                                                <span class="tooltip">Exemples : céréales, pâtes, riz, légumes secs, sucre, sel, café, thé, épices. Note: fruits et légumes frais entiers sont assimilés aux denrées sèches.</span>
+                                            </i>
+                                        </div>
+                                        
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" name="food-type[]" value="aqueous" id="ft-aqueous">
+                                            <label for="ft-aqueous">Denrées humides / Produits aqueux</label>
+                                            <i class="help-icon">?
+                                                <span class="tooltip">Exemples : eau, jus de fruits sans pulpe, boissons non alcoolisées, lait, produits laitiers frais, soupes, sauces aqueuses.</span>
+                                            </i>
+                                        </div>
+                                        
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" name="food-type[]" value="acidic" id="ft-acidic">
+                                            <label for="ft-acidic">Denrées acides (pH ≤ 4,5)</label>
+                                            <i class="help-icon">?
+                                                <span class="tooltip">Exemples : vinaigre, cornichons, tomates, agrumes, yaourts, fruits acides, boissons gazeuses, vins.</span>
+                                            </i>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" name="food-type[]" value="alcoholic" id="ft-alcoholic">
+                                            <label for="ft-alcoholic">Denrées alcooliques</label>
+                                        </div>
+                                        <div id="alcohol-degree" style="display: none; margin-left: 30px; margin-top: 0.5rem;">
+                                            <input type="number" name="alcohol-degree" placeholder="Degré d'alcool %" step="0.1" style="width: 150px;">
+                                            <span style="font-size: 0.85rem; color: #666; margin-left: 0.5rem;">% vol.</span>
+                                        </div>
+                                        
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" name="food-type[]" value="fatty" id="ft-fatty">
+                                            <label for="ft-fatty">Denrées grasses</label>
+                                            <i class="help-icon">?
+                                                <span class="tooltip"><strong>Important pour les plastiques :</strong> Si le matériau est soumis au Règlement (UE) n°10/2011, précisez si un Facteur de Réduction lié à la Teneur en Matière Grasse (FRTMG) ou un facteur lié au simulant D2 a été appliqué lors des tests.</span>
+                                            </i>
+                                        </div>
+                                        <div id="frtmg-info" style="display: none; margin-left: 30px; margin-top: 0.5rem;">
+                                            <div class="checkbox-group">
+                                                <input type="checkbox" name="frtmg-applied" id="frtmg-check">
+                                                <label for="frtmg-check">Facteur de Réduction FRTMG appliqué</label>
+                                            </div>
+                                            <div class="checkbox-group">
+                                                <input type="checkbox" name="simulant-d2-applied" id="d2-check">
+                                                <label for="d2-check">Facteur de réduction simulant D2 appliqué</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" name="food-type[]" value="frozen" id="ft-frozen">
+                                            <label for="ft-frozen">Denrées congelées / surgelées</label>
+                                        </div>
+                                        <div id="frozen-details" style="display: none; margin-left: 30px; margin-top: 0.5rem;">
+                                            <textarea name="frozen-conditions" placeholder="Précisez si les denrées sont congelées/surgelées dans ou hors emballage, et si elles sont décongelées dans ou hors emballage" rows="2" style="width: 100%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="other-food-types">Autres types de denrées (à préciser)</label>
+                                    </div>
+                                    <textarea id="other-food-types" name="other-food-types" rows="2" placeholder="Ex: Denrées liquides spécifiques, produits d'activité de l'eau (Aw) particulière, etc."></textarea>
+                                </div>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">thermostat</span>
+                                Conditions normales et prévisibles de contact
+                            </h3>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Point de vigilance utilisateur :</strong> Vérifier que la denrée à laquelle est destiné le matériau ou l'objet va bien être traitée/transformée/stockée dans les conditions listées ci-dessous (ex: plat cuisiné qui doit être réchauffé au micro-ondes, etc.).</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="usage-conditions">Durée et température d'utilisation garanties <span class="required">*</span></label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip"><strong>SPÉCIFIER CLAIREMENT :</strong> Les durées et températures maximales de traitement et d'entreposage pour lesquelles la conformité est garantie. Incluez toutes les étapes : fabrication, stockage, transport, utilisation par le consommateur. Exemples d'informations à fournir : "Contact longue durée à température ambiante (≤40°C) pendant 6 mois", "Pasteurisation 90°C pendant 30 min", "Stérilisation 121°C 20 min", "Micro-ondes 3 min à 750W", "Four traditionnel 200°C 45 min", "Congélation -18°C 12 mois". Cela correspond, pour les plastiques, aux conditions d'analyse prévues à l'annexe V du règlement (UE) n°10/2011.</span>
+                                    </i>
+                                </div>
+                                <textarea id="usage-conditions" name="usage-conditions" rows="4" placeholder="Ex: &#10;- Remplissage à chaud: 85°C pendant 10 minutes maximum&#10;- Pasteurisation: 90°C pendant 30 minutes&#10;- Stockage réfrigéré: 0-4°C pendant 21 jours&#10;- Réchauffage micro-ondes: 750W pendant 3 minutes maximum&#10;- Congélation possible: -18°C pendant 6 mois" required></textarea>
+                            </div>
+                            
+                            <div class="warning-box">
+                                <p><strong>⚠ Méthodes de vérification :</strong> Le respect des limites doit être établi par : Analyse (A), Worst case (W), Calcul (C) ou Modélisation (M). Cette obligation découle de l'article 16 du Règlement (UE) 10/2011. Pour les plastiques le respect des limites découle d'une obligation inscrite à l'article 16 du Règlement (UE) 10/2011. Pour les autres materiaux se référer aux textes de référence. En attendant l'entrée en vigueur du Règlement 2025/351, la DGCCRF recommande: <<Dans le cas des matériaux et objets multimatériaux multicouches, lorsque la couche en contact direct avec les denrées alimentaires est en matière plastique, la vérification sur le produit fini du respect de l'article 3 du règlement cadre Plastique (migration spécifique et globale) est effectuée sur la base des règles et des limitations prévues dans le règlement (UE) n°10/2011 >>.</p>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">straighten</span>
+                                Rapport Surface/Volume (S/V)
+                            </h3>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Paramètre CRITIQUE :</strong> Le ratio Surface/Volume est essentiel pour l'évaluation de la conformité. Il détermine le niveau de migration potentiel des substances vers l'aliment.</p>
+                                <p><strong>Formule :</strong> Ratio S/V = Surface de contact (dm²) / Volume ou poids de la denrée (kg ou L)</p>
+                                <p><strong>Valeurs typiques :</strong> Entre 1 kg/10 dm² (0,1) et 1 kg/50 dm² (0,02) pour les emballages carton. Le ratio 6 dm²/kg est couramment utilisé dans les tests.</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ CRITIQUE pour l'utilisateur :</strong> Le ratio réel d'utilisation doit être <strong>inférieur ou égal</strong> au ratio maximal indiqué ci-dessous. Si ce n'est pas le cas, l'utilisateur doit faire des analyses complémentaires pour vérifier la conformité pour son application spécifique. Ce ratio doit aussi être le plus sévère utilisé lors de la vérification des LMS (Section 7).</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="sv-ratio-type">Type de ratio S/V <span class="required">*</span></label>
+                                </div>
+                                <select id="sv-ratio-type" name="sv-ratio-type" required>
+                                    <option value="">Sélectionnez...</option>
+                                    <option value="6">6 dm²/kg (ratio standard)</option>
+                                    <option value="custom">Autre ratio (à préciser)</option>
+                                    <option value="na">Non applicable</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="sv-custom-field" style="display: none;">
+                                <div class="label-container">
+                                    <label for="sv-ratio-value">Ratio S/V maximal utilisé pour établir la conformité</label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">Indiquez le rapport surface/volume le plus élevé dont la conformité a été vérifiée (conformément aux articles 17 et 18 du règlement 10/2011 ou informations équivalentes). Exprimé en dm²/kg ou dm²/L. Pour rappel : plus le ratio est élevé, plus la surface de contact est importante par rapport au volume de denrée, donc plus le risque de migration est élevé. D'après la fiche MCDA n°4 (V02 - 01/01/2019), les valeurs de migration spécifique sont exprimées en mg/kg, sur la base du rapport surface/volume dans les conditions d'utilisation réelles ou prévisibles (généralement entre 1kg/10dm² et 1kg/50dm² pour les emballages alimentaires en carton) ou à défaut sur la base du rapport surface/volume maximal mentionné dans la déclaration de conformité.</span>
+                                    </i>
+                                </div>
+                                <input type="text" id="sv-ratio-value" name="sv-ratio-value" placeholder="Ex: 10 dm²/kg">
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-container">
+                                    <label for="sv-calculation-method">Méthode de détermination du ratio S/V</label>
+                                </div>
+                                <textarea id="sv-calculation-method" name="sv-calculation-method" rows="2" placeholder="Ex: Calcul géométrique basé sur les dimensions de la barquette (18x12x4,5 cm) et volume nominal 600 mL"></textarea>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 6: REGLEMENTATION -->
+                        <section class="section" id="section-6" data-step="6">
+                            <h2>6. Références réglementaires</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Textes fondamentaux :</strong> Le matériau et/ou objet qui fait l'objet de cette déclaration est conforme aux exigences du <strong>règlement cadre (CE) n°1935/2004</strong>, du <strong>règlement (CE) n°2023/2006</strong> (bonnes pratiques de fabrication), et de tout autre texte réglementaire pertinent.</p>
+                                <p>La référence aux textes s'entend comme la référence aux textes <strong>en vigueur au jour de la signature</strong> de la présente déclaration. Il n'est pas nécessaire de préciser tous les amendements.</p>
+                                <p><strong>Objectif :</strong> Identifier clairement l'ensemble des textes réglementaires applicables au matériau/objet, conformément aux exigences de l'article 16 du Règlement (CE) n°1935/2004.</p>
+                            </div>
+                            
+                            <div class="warning-box">
+                                <p><strong>Mise à jour obligatoire :</strong> Les modifications pertinentes dans la législation et/ou toute modification dans les substances ou dans la composition des matériaux influant sur la DC nécessitent une mise à jour de la déclaration. Le client doit être informé de ces mises à jour.</p>
+                            </div>
+
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Point de vigilance pour l'utilisateur :</strong> En cas de modification de la destination d'un emballage, reprendre, a minima, tous les points de vigilance ci-dessous pour vérifier que la DoC s'applique toujours. Les déclarations portant sur les restrictions inscrites dans d'autres réglementations (ex: loi Agec) sont à effectuer dans un document séparé. Pour les matériaux ou objets relevant du champ d'application du Règlement (UE) 2024/3190 listez les bisphénols ou dérivés des bisphénols utilisés dans la fabrication du matériau ou de l'objet entrant en contact avec des denrées alimentaires.</p>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">gavel</span>
+                                Réglementation européenne (obligatoire)
+                            </h3>
+                            
+                            <div class="checkbox-group" style="background-color: #e8f5e9; padding: 0.8rem;">
+                                <input type="checkbox" name="reg[]" value="1935/2004" id="reg-1935" checked disabled>
+                                <label for="reg-1935"><strong>Règlement (CE) n°1935/2004 - Règlement-cadre matériaux contact alimentaire</strong></label>
+                            </div>
+                            
+                            <div class="checkbox-group" style="background-color: #e8f5e9; padding: 0.8rem;">
+                                <input type="checkbox" name="reg[]" value="2023/2006" id="reg-2023" checked disabled>
+                                <label for="reg-2023"><strong>Règlement (CE) n°2023/2006 - Bonnes pratiques de fabrication (BPF)</strong></label>
+                            </div>
+                            
+                            <h4>Règlements spécifiques par type de matériau</h4>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="10/2011" id="reg-10">
+                                <label for="reg-10">Règlement (UE) n°10/2011 - Matières plastiques</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Règlement spécifique concernant les matériaux et objets en matière plastique destinés à entrer en contact avec des denrées alimentaires. Modifié par le Règlement (UE) 2025/351 concernant les multicouches.</span>
+                                </i>
+                            </div>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="2025/351" id="reg-2025-351">
+                                <label for="reg-2025-351">Règlement (UE) 2025/351 - Matériaux et objets multicouches</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Nouveau règlement modifiant le règlement 10/2011 concernant spécifiquement les plastiques multicouches et multimatériaux multicouches. Entrée en vigueur progressive selon calendrier défini.</span>
+                                </i>
+                            </div>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="2024/3190" id="reg-bisphenol">
+                                <label for="reg-bisphenol">Règlement (UE) 2024/3190 - Bisphénols dans les matériaux contact alimentaire</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Règlement établissant des règles spécifiques concernant les bisphénols dans les matériaux et objets en matière plastique destinés à entrer en contact avec des denrées alimentaires. Applicable depuis 2024.</span>
+                                </i>
+                            </div>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="2022/1616" id="reg-recycled">
+                                <label for="reg-recycled">Règlement (UE) n°2022/1616 - Plastiques recyclés</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Concerne les matériaux et objets en matière plastique recyclée. Si coché, joindre la déclaration de conformité spécifique selon ce règlement. Dans l'attente de la publication des autorisations, il peut être intéressant d'indiquer la référence de l'avis de l'EFSA du procédé utilisé et de vérifier que les éventuelles conditions d'usage sont respectées.</span>
+                                </i>
+                            </div>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="450/2009" id="reg-active">
+                                <label for="reg-active">Règlement (CE) n°450/2009 - Matériaux actifs et intelligents</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Concerne les matériaux et objets actifs et intelligents destinés à entrer en contact avec des denrées alimentaires. Nécessite autorisation préalable des substances utilisées. A noter que ce point ne sera applicable qu'à compter de la publication de la liste de substances autorisées en question.</span>
+                                </i>
+                            </div>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="284/2011" id="reg-chinese">
+                                <label for="reg-chinese">Règlement (UE) n°284/2011 - Matériaux origine chinoise (polyamide et mélamine)</label>
+                            </div>
+                            
+                            <h4>Réglementation française</h4>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="decret-2007-766" id="reg-decret">
+                                <label for="reg-decret">Décret n°2007-766 du 10 mai 2007 modifié - Transposition en droit français</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Décret de transposition en droit français des exigences européennes relatives aux matériaux et objets au contact des denrées alimentaires.</span>
+                                </i>
+                            </div>
+                            
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="reg[]" value="loi-2010-729" id="reg-bpa">
+                                <label for="reg-bpa">Loi n°2010-729 - Interdiction du BPA en France</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Loi française relative à l'interdiction du bisphénol A (BPA) dans les contenants alimentaires. Applicable aux contenants destinés aux enfants de moins de 3 ans et à tous les contenants alimentaires.</span>
+                                </i>
+                            </div>
+                            
+                            <h3 style="margin-top: 2rem;">
+                                <span class="material-symbols-outlined">public</span>
+                                Autres textes de référence (recommandations, guidelines)
+                            </h3>
+                            
+                            <div class="form-group">
+                                <label>Tableau des textes de référence par typologie de matériau</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Pour les matériaux n'ayant pas de réglementation harmonisée EU (encres, adhésifs, papier-carton, vernis, etc.), référencez les textes professionnels, résolutions du Conseil de l'Europe, recommandations BfR (Allemagne), ordonnances suisses, guidelines sectoriels (EuPIA pour encres, FEICA pour adhésifs, CITPA pour papier-carton), etc.</span>
+                                </i>
+                            </div>
+                            
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 200px;">Typologie des matières</th>
+                                        <th>Textes réglementaires et Textes de référence</th>
+                                        <th style="width: 150px;">Europe / État membre</th>
+                                        <th style="width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reglementation-tbody">
+                                    <tr>
+                                        <td><input type="text" class="reg-material-type" placeholder="Ex: Encres d'imprimerie"></td>
+                                        <td><textarea class="reg-text-ref" placeholder="Ex: Ordonnance suisse SR 817.023.21, EuPIA Guideline" rows="2"></textarea></td>
+                                        <td><input type="text" class="reg-country" placeholder="Ex: Suisse, EU"></td>
+                                        <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary" id="add-reglementation-btn">
+                                <span class="material-symbols-outlined">add</span>Ajouter un texte de référence
+                            </button>
+                            
+                            <h3 style="margin-top: 2.5rem;">
+                                <span class="material-symbols-outlined">recycling</span>
+                                Matériaux particuliers
+                            </h3>
+                            
+                            <div class="form-group checkbox-group" style="background-color: #f0f0f0; padding: 1rem;">
+                                <input type="checkbox" id="no-special-material" name="no-special-material">
+                                <label for="no-special-material"><strong>Non concerné par des matériaux particuliers (recyclés, actifs, intelligents)</strong></label>
+                            </div>
+                            
+                            <div id="special-materials-fields">
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="special-active" name="special-material[]" value="active">
+                                        <label for="special-active">Matériau actif ou intelligent (Règlement CE n°450/2009)</label>
+                                    </div>
+                                    <div id="active-material-details" style="display: none; margin-left: 30px; margin-top: 1rem;">
+                                        <div class="form-group">
+                                            <label>Substance(s) utilisée(s) et numéro dans le registre européen :</label>
+                                            <textarea name="active-substance-details" rows="3" placeholder="Ex: Absorbeur d'oxygène à base de fer - N° EU Register: ACT-123-2024"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="special-recycled-plastic" name="special-material[]" value="recycled-plastic">
+                                        <label for="special-recycled-plastic">Plastique recyclé (Règlement UE n°2022/1616)</label>
+                                    </div>
+                                    <div id="recycled-plastic-details" style="display: none; margin-left: 30px; margin-top: 1rem;">
+                                        <div class="warning-box">
+                                            <p><strong>Important :</strong> Une déclaration de conformité spécifique selon le modèle du règlement 2022/1616 doit être jointe. Précisez ci-dessous les informations principales.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Type de matériau recyclé et numéro d'autorisation du procédé :</label>
+                                            <textarea name="recycled-plastic-details" rows="3" placeholder="Ex: PET recyclé post-consommation - Procédé autorisé n° RECYC-PET-EU-2023-045"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="special-recycled-other" name="special-material[]" value="recycled-other">
+                                        <label for="special-recycled-other">Autres matériaux recyclés (non-plastique)</label>
+                                    </div>
+                                    <div id="recycled-other-details" style="display: none; margin-left: 30px; margin-top: 1rem;">
+                                        <div class="form-group">
+                                            <label>Précisez le type et les conditions :</label>
+                                            <textarea name="recycled-other-details" rows="3" placeholder="Ex: Fibres de papier recyclé post-consommation, conformément aux critères de pureté BfR XXXVI"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="vigilance-box" style="margin-top: 2rem;">
+                                <p><strong>⚠ Point de vigilance Bisphénols :</strong> Pour les matériaux relevant du champ d'application du Règlement (UE) 2024/3190, listez les bisphénols ou dérivés des bisphénols utilisés dans la fabrication du matériau (voir Section 7).</p>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 7: SUBSTANCES & ANALYSES -->
+                        <section class="section" id="section-7" data-step="7">
+                            <h2>7. Informations relatives au matériau/objet - Substances et Analyses</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Section technique critique :</strong> Cette déclaration de conformité a été établie sur la base des éléments suivants. Cochez toutes les cases correspondantes et complétez les tableaux associés.</p>
+                                <p>Les informations de cette section permettent de démontrer la conformité du matériau aux exigences de l'article 3 du Règlement 1935/2004 : absence de danger pour la santé, pas de modification inacceptable de la composition des denrées, pas d'altération des caractères organoleptiques.</p>
+                                <p><strong>Objectif :</strong> Fournir les éléments techniques permettant de démontrer la conformité du matériau/objet aux exigences réglementaires, conformément aux articles 3 et 16 du Règlement (CE) n°1935/2004.</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Documentation :</strong> Selon l'article 16 du Règlement 1935/2004, la documentation complète (bulletins d'analyse, certificats) doit être mise à disposition des autorités sur demande. Elle n'est pas obligatoirement communiquée au client mais doit être disponible.</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><strong>Éléments sur lesquels cette déclaration est fondée :</strong></label>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="doc-basis[]" value="supplier-declarations" id="basis-supplier">
+                                    <label for="basis-supplier">Déclarations des fournisseurs de matières premières</label>
+                                    <i class="help-icon">?
+                                        <span class="tooltip">Déclarations de conformité ou certificats fournis par les fournisseurs de matières premières, additifs, adjuvants utilisés dans la fabrication du matériau/objet.</span>
+                                    </i>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="doc-basis[]" value="global-migration" id="basis-global">
+                                    <label for="basis-global">Analyses de migration globale</label>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="doc-basis[]" value="restricted-substances" id="basis-restricted">
+                                    <label for="basis-restricted">Substances soumises à restriction (LMS, QM, pureté)</label>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="doc-basis[]" value="dua" id="basis-dua">
+                                    <label for="basis-dua">Informations sur les additifs à double usage</label>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="doc-basis[]" value="nias-listed" id="basis-nias-listed">
+                                    <label for="basis-nias-listed">Évaluation des substances non listées intentionnellement ajoutées</label>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="doc-basis[]" value="nias" id="basis-nias">
+                                    <label for="basis-nias">Évaluation des substances non intentionnellement ajoutées (NIAS)</label>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="doc-basis[]" value="sensory" id="basis-sensory">
+                                    <label for="basis-sensory">Test(s) sensoriel(s)</label>
+                                </div>
+                            </div>
+
+                            <!-- 7.1 MIGRATION GLOBALE -->
+                            <h3 style="margin-top: 2.5rem;">
+                                <span class="material-symbols-outlined">science</span>
+                                7.1 Analyse de migration globale
+                            </h3>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Migration globale :</strong> Mesure de la quantité totale de substances qui migrent du matériau vers la denrée ou le simulant alimentaire. Pour les plastiques : limite maximale de 60 mg/kg (ou 10 mg/dm² selon cas).</p>
+                                <p><strong>Simulants :</strong> Liquides représentant différents types d'aliments selon Annexe III et V du Règlement (UE) 10/2011.</p>
+                            </div>
+                            
+                            <div class="warning-box">
+                                <p><strong>Applicabilité :</strong> Ce point ne concerne pas à date le verre, les matériaux et objets multimatériaux multicouches. En attendant l'entrée en vigueur du Règlement 2025/351, la DGCCRF recommande: <<Dans le cas des matériaux et objets multimatériaux multicouches, lorsque la couche en contact direct avec les denrées alimentaires est en matière plastique, la vérification sur le produit fini du respect de l'article 3 du règlement cadre Plastique (migration spécifique et globale) est effectuée sur la base des règles et des limitations prévues dans le règlement (UE) n°10/2011 >>.</p>
+                            </div>
+                            
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 200px;">Simulant utilisé</th>
+                                        <th style="width: 150px;">Durée</th>
+                                        <th style="width: 150px;">Température</th>
+                                        <th style="width: 200px;">Résultat (mg/kg ou mg/dm²)</th>
+                                        <th style="width: 150px;">Conforme / Non-conforme</th>
+                                        <th style="width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="migration-globale-tbody">
+                                    <tr>
+                                        <td>
+                                            <select class="mg-simulant">
+                                                <option value="">Sélectionnez...</option>
+                                                <option value="A">Simulant A - Éthanol 10%</option>
+                                                <option value="B">Simulant B - Acide acétique 3%</option>
+                                                <option value="C">Simulant C - Éthanol 20%</option>
+                                                <option value="D1">Simulant D1 - Éthanol 50%</option>
+                                                <option value="D2">Simulant D2 - Huile végétale</option>
+                                                <option value="E">Simulant E - MPPO</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" class="mg-duration" placeholder="Ex: 10 jours"></td>
+                                        <td><input type="text" class="mg-temperature" placeholder="Ex: 40°C"></td>
+                                        <td><input type="text" class="mg-result" placeholder="Ex: < 10 mg/kg"></td>
+                                        <td>
+                                            <select class="mg-conformity">
+                                                <option value="">-</option>
+                                                <option value="Conforme">Conforme</option>
+                                                <option value="Non-conforme">Non-conforme</option>
+                                            </select>
+                                        </td>
+                                        <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary" id="add-mg-btn">
+                                <span class="material-symbols-outlined">add</span>Ajouter un test de migration globale
+                            </button>
+                            
+                            <div class="form-group" style="margin-top: 1.5rem;">
+                                <label>Commentaires ou précisions sur les tests de migration globale :</label>
+                                <textarea name="mg-comments" rows="2" placeholder="Ex: Tests réalisés selon EN 1186, laboratoire accrédité ISO 17025..."></textarea>
+                            </div>
+
+                            <!-- 7.2 SUBSTANCES À RESTRICTION -->
+                            <h3 style="margin-top: 2.5rem;">
+                                <span class="material-symbols-outlined">warning</span>
+                                7.2 Substances soumises à restriction (LMS, QM, critères de pureté)
+                            </h3>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Définitions :</strong></p>
+                                <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.8;">
+                                    <li><strong>LMS (Limite de Migration Spécifique) :</strong> Quantité maximale d'une substance autorisée à migrer dans/sur la denrée (mg/kg)</li>
+                                    <li><strong>QM (Quantité Maximale) :</strong> Quantité maximale d'une substance dans le matériau fini (mg/kg de matériau)</li>
+                                    <li><strong>LMST :</strong> Limites cumulées pour plusieurs substances</li>
+                                    <li><strong>Critères de pureté :</strong> Spécifications de qualité (ex: papiers-cartons selon BfR XXXVI)</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Méthodes de vérification :</strong> Le respect des limites doit être établi par : Analyse (A), Worst case (W), Calcul (C) ou Modélisation (M). Cette obligation découle de l'article 16 du Règlement (UE) 10/2011. Pour les plastiques le respect des limites découle d'une obligation inscrite à l'article 16 du Règlement (UE) 10/2011. Pour les autres materiaux se référer aux textes de référence. En attendant l'entrée en vigueur du Règlement 2025/351, la DGCCRF recommande: <<Dans le cas des matériaux et objets multimatériaux multicouches, lorsque la couche en contact direct avec les denrées alimentaires est en matière plastique, la vérification sur le produit fini du respect de l'article 3 du règlement cadre Plastique (migration spécifique et globale) est effectuée sur la base des règles et des limitations prévues dans le règlement (UE) n°10/2011 >>.</p>
+                            </div>
+                            
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 200px;">Nom de la substance</th>
+                                        <th style="width: 150px;">N° CAS / CEE</th>
+                                        <th style="width: 200px;">Limite(s) admissible(s)</th>
+                                        <th style="width: 200px;">Texte de référence</th>
+                                        <th style="width: 100px;">Méthode vérification</th>
+                                        <th style="width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="restrictions-tbody">
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary" id="add-restriction-btn">
+                                <span class="material-symbols-outlined">add</span>Ajouter une substance soumise à restriction
+                            </button>
+                            
+                            <div class="form-group" style="margin-top: 1.5rem;">
+                                <label>Précisions sur les simulants et conditions de test (si analyses réalisées) :</label>
+                                <textarea name="restrictions-test-conditions" rows="3" placeholder="Ex: Tests réalisés avec simulant D1 (éthanol 50%), 10 jours à 40°C, ratio S/V = 6 dm²/kg"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Si non rempli, précisez les raisons :</label>
+                                <textarea name="restrictions-not-filled-reason" rows="2" placeholder="Ex: Absence de substances soumises à restrictions dans ce matériau / Les substances ne peuvent être libérées au-delà des limites spécifiées"></textarea>
+                            </div>
+
+                            <!-- 7.3 ADDITIFS DOUBLE USAGE -->
+                            <h3 style="margin-top: 2.5rem;">
+                                <span class="material-symbols-outlined">sync_alt</span>
+                                7.3 Additifs à double usage
+                            </h3>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Définition :</strong> Un additif à double usage est une substance utilisée à la fois comme matière dans la formulation de l'emballage ET pouvant être retrouvée dans la composition d'un aliment. Les concentrations peuvent donc s'additionner.</p>
+                                <p><strong>Référence :</strong> Règlements (CE) n°1333/2008 (additifs alimentaires) et n°1334/2008 (arômes).</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ Responsabilité du fabricant de denrée :</strong> Le fabricant de la denrée alimentaire doit s'assurer du respect des restrictions prévues par les règlements 1333/2008 et 1334/2008 en tenant compte des additifs déclarés ici.</p>
+                            </div>
+                            
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 250px;">Nom de l'additif</th>
+                                        <th style="width: 150px;">N° E ou FL</th>
+                                        <th style="width: 150px;">N° CAS</th>
+                                        <th style="width: 200px;">Teneur mise en œuvre (optionnel)</th>
+                                        <th style="width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dua-tbody">
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary" id="add-dua-btn">
+                                <span class="material-symbols-outlined">add</span>Ajouter un additif à double usage
+                            </button>
+
+                            <!-- 7.4 SUBSTANCES NON LISTÉES INTENTIONNELLEMENT AJOUTÉES -->
+                            <h3 style="margin-top: 2.5rem;">
+                                <span class="material-symbols-outlined">inventory_2</span>
+                                7.4 Évaluation des substances non listées intentionnellement ajoutées
+                            </h3>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Contexte réglementaire :</strong> Selon l'article 8.2 du Règlement 1935/2004, aucune substance n'est autorisée s'il n'a pas été démontré de manière adéquate que le matériau final satisfait aux exigences de l'article 3.</p>
+                                <p>Il s'agit des substances intentionnellement ajoutées mais ne figurant pas dans les listes positives (ex: substances utilisées dans des matériaux sans réglementation harmonisée).</p>
+                            </div>
+                            
+                            <div class="form-group checkbox-group" style="background-color: #e8f5e9; padding: 1rem;">
+                                <input type="checkbox" id="nias-listed-eval-done" name="nias-listed-eval-done">
+                                <label for="nias-listed-eval-done"><strong>Évaluation des risques effectuée (Article 3 du Règlement 1935/2004)</strong></label>
+                            </div>
+                            
+                            <div class="warning-box">
+                                <p><strong>Important :</strong> Si l'évaluation n'est pas effectuée, lister ci-dessous les substances potentiellement à risque avec leurs informations.</p>
+                            </div>
+                            
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 200px;">Nom</th>
+                                        <th style="width: 150px;">N° CAS / EINECS / Réf. MCDA</th>
+                                        <th style="width: 200px;">Texte de référence</th>
+                                        <th style="width: 150px;">Quantité max (%) dans matériau</th>
+                                        <th style="width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nias-listed-tbody">
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary" id="add-nias-listed-btn">
+                                <span class="material-symbols-outlined">add</span>Ajouter une substance non listée
+                            </button>
+
+                            <!-- 7.5 NIAS -->
+                            <h3 style="margin-top: 2.5rem;">
+                                <span class="material-symbols-outlined">bug_report</span>
+                                7.5 Évaluation des substances non intentionnellement ajoutées (NIAS)
+                            </h3>
+                            
+                            <div class="guidance-box">
+                                <p><strong>NIAS :</strong> Non-Intentionally Added Substances - Substances non intentionnellement ajoutées présentes dans le matériau (impuretés, produits de dégradation, contaminants, produits de réaction).</p>
+                                <p><strong>Obligation :</strong> Si elles sont présentes en quantité susceptible d'entraîner la non-conformité avec l'article 3 du Règlement 1935/2004, elles doivent être évaluées.</p>
+                            </div>
+                            
+                            <div class="form-group checkbox-group" style="background-color: #e8f5e9; padding: 1rem;">
+                                <input type="checkbox" id="nias-eval-done" name="nias-eval-done">
+                                <label for="nias-eval-done"><strong>Évaluation des risques effectuée (Article 3 du Règlement 1935/2004)</strong></label>
+                            </div>
+                            
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 200px;">Nom</th>
+                                        <th style="width: 150px;">N° CAS / EINECS / Réf.</th>
+                                        <th>Commentaires (quantités, tests, évaluation)</th>
+                                        <th style="width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nias-tbody">
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary" id="add-nias-btn">
+                                <span class="material-symbols-outlined">add</span>Ajouter un NIAS
+                            </button>
+
+                            <!-- 7.6 TESTS SENSORIELS -->
+                            <h3 style="margin-top: 2.5rem;">
+                                <span class="material-symbols-outlined">psychology</span>
+                                7.6 Test(s) sensoriel(s)
+                            </h3>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Référence :</strong> Article 3 du Règlement 1935/2004 - Le matériau ne doit pas entraîner une altération des caractères organoleptiques des denrées.</p>
+                                <p><strong>Normes disponibles :</strong> ISO 13302, DIN 10955, EN 1230 (papier-carton).</p>
+                            </div>
+                            
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="sensory-test-done" name="sensory-test-done">
+                                <label for="sensory-test-done">Test(s) sensoriel(s) réalisé(s)</label>
+                            </div>
+                            
+                            <div class="form-group" id="sensory-details" style="display: none;">
+                                <label>Précisions sur les tests sensoriels :</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">Indiquez : type de matrice testée (produit acide/neutre), conditions du test (durée, température), norme utilisée, résultats (conforme/non-conforme), laboratoire si applicable. Pour rappel, l'article 3 du règlement 1935/2004 s'applique.</span>
+                                </i>
+                                <textarea name="sensory-test-details" rows="4" placeholder="Ex: Test selon EN 1230-2, durée 24h à 23°C avec simulant aqueux. Panel de 10 dégustateurs. Résultat : aucune altération organoleptique détectée. Conforme."></textarea>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 8: PIECES JOINTES -->
+                        <section class="section" id="section-8" data-step="8">
+                            <h2>8. Pièces jointes - Documents justificatifs</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Documentation requise :</strong> Joignez tous les documents justificatifs pertinents qui appuient cette déclaration de conformité.</p>
+                                <p><strong>Exemples de documents à fournir :</strong></p>
+                                <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.8;">
+                                    <li>Rapports d'analyse de migration (globale et spécifique)</li>
+                                    <li>Certificats d'analyse des matières premières</li>
+                                    <li>Déclarations de conformité des fournisseurs</li>
+                                    <li>Fiches techniques des matériaux</li>
+                                    <li>Fiches de données de sécurité (FDS) pertinentes</li>
+                                    <li>Rapports d'évaluation toxicologique</li>
+                                    <li>Résultats de tests sensoriels</li>
+                                    <li>Photos ou schémas du produit</li>
+                                    <li>Certificats d'autorisation (recyclage, substances actives)</li>
+                                </ul>
+                                <p><strong>Objectif :</strong> Fournir les documents justificatifs permettant de vérifier la conformité du matériau/objet, conformément aux exigences de l'article 16 du Règlement (CE) n°1935/2004.</p>
+                            </div>
+                            
+                            <div class="warning-box">
+                                <p><strong>Confidentialité :</strong> Ces fichiers sont inclus dans le package de sauvegarde (.dec) pour votre archivage. Ils ne sont communiqués aux autorités que sur demande conformément à l'article 16 du Règlement 1935/2004.</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="file-input" class="btn btn-secondary" style="cursor: pointer;">
+                                    <span class="material-symbols-outlined">upload_file</span>Sélectionner des fichiers
+                                </label>
+                                <input type="file" id="file-input" multiple style="display:none;">
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Formats acceptés : PDF, Word, Excel, images (JPG, PNG), ZIP</p>
+                            </div>
+                            
+                            <h3>Fichiers attachés :</h3>
+                            <ul id="file-list"></ul>
+                            
+                            <div class="form-group" style="margin-top: 2rem;">
+                                <label>Commentaires sur les pièces jointes :</label>
+                                <textarea name="attachments-comments" rows="3" placeholder="Ex: Le rapport de migration LAB-2024-456 concerne les tests sur simulant D1. Les certificats fournisseurs sont datés de 2024."></textarea>
+                            </div>
+                        </section>
+
+                        <!-- SECTION 9: SIGNATURE -->
+                        <section class="section" id="section-9" data-step="9">
+                            <h2>9. Signature et validité</h2>
+                            
+                            <div class="guidance-box">
+                                <p><strong>Engagement du signataire :</strong> La signature engage la responsabilité du déclarant quant à l'exactitude des informations fournies dans cette déclaration.</p>
+                                <p><strong>Objectif :</strong> Formaliser la déclaration de conformité par la signature du responsable, conformément aux exigences de l'article 16 du Règlement (CE) n°1935/2004.</p>
+                            </div>
+                            
+                            <div class="warning-box">
+                                <p><strong>Validité de la déclaration :</strong> Cette déclaration est valide uniquement pour le matériau ou l'objet tel que livré (emballage vide), et tant qu'il n'y a pas de :</p>
+                                <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.8;">
+                                    <li>Modification réglementaire pertinente</li>
+                                    <li>Changement susceptible d'entraîner une modification de l'inertie du matériau</li>
+                                    <li>Modification dans la composition ou la structure</li>
+                                </ul>
+                                <p style="margin-top: 1rem;"><strong>Durée recommandée :</strong> La DGCCRF propose une durée de 5 ans maximum pour la validité des rapports d'essais.</p>
+                            </div>
+                            
+                            <div class="vigilance-box">
+                                <p><strong>⚠ RESPONSABILITÉ DE L'UTILISATEUR :</strong> En cas de changement des caractéristiques du produit emballé, de sa composition ou de sa destination, ainsi que dans le cas d'une modification des conditions de mise en œuvre du matériau ou de l'objet, <strong>la personne destinataire de la présente déclaration doit s'assurer de la compatibilité contenant/contenu</strong> dont elle assume alors seul la responsabilité.</p>
+                                <p><strong>Point de vigilance:</strong> la DGGCRF propose une durée de 5 ans maximum pour la durée de validité des rapports d'essais; si des changements susceptibles d'entraîner une modification de l'inertie du matériau sont intervenus pendant cette période, les essais doivent être refaits.</p>
+                            </div>
+                            
+                            <div class="grid-2-cols" style="margin-top: 2rem;">
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="doc-location">Fait à <span class="required">*</span></label>
+                                    </div>
+                                    <input type="text" id="doc-location" name="doc-location" placeholder="Ex: Paris" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="label-container">
+                                        <label for="doc-date">Le <span class="required">*</span></label>
+                                    </div>
+                                    <input type="date" id="doc-date" name="doc-date" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Validité estimée de cette déclaration :</label>
+                                <i class="help-icon">?
+                                    <span class="tooltip">La validité d'une DC dépend des modifications apportées à l'article ou de son utilisation, ou encore des évolutions réglementaires ou des conditions de réalisation des tests de migration. ou de la réglementation ou si modification des conditions d'analyses de migration. La publication d'un amendement n'entraîne pas de mise à jour de la DC dès lors qu'il n'a pas d'impact sur l'objet de la déclaration.</span>
+                                </i>
+                                <div class="grid-2-cols">
+                                    <input type="date" name="validity-start" placeholder="Date de début">
+                                    <input type="date" name="validity-end" placeholder="Date de fin (suggérée : 5 ans)">
+                                </div>
+                            </div>
+                            
+                            <h3>
+                                <span class="material-symbols-outlined">draw</span>
+                                Signature du déclarant
+                            </h3>
+                            
+                            <div class="warning-box">
+                                <p><strong>Information importante :</strong> La personne signataire doit être habilitée à le faire. Dessinez votre signature dans le cadre ci-dessous.</p>
+                            </div>
+                            
+                            <div style="text-align: center; margin: 2rem 0;">
+                                <canvas id="signature-pad" width="500" height="200"></canvas>
+                            </div>
+                            
+                            <div style="text-align: center; margin-bottom: 2rem;">
+                                <button type="button" id="clear-signature-btn" class="btn btn-secondary">
+                                    <span class="material-symbols-outlined">refresh</span>Effacer la signature
+                                </button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Notes finales ou informations complémentaires :</label>
+                                <textarea name="final-notes" rows="4" placeholder="Ex: Conditions particulières de stockage, précautions d'emploi, restrictions d'usage supplémentaires..."></textarea>
+                            </div>
+                        </section>
+                            </main>        
+        <footer class="action-bar">
+            <div class="action-bar-left">
+                <label for="load-input" class="btn btn-secondary">
+                    <span class="material-symbols-outlined">folder_open</span>Charger Projet (.dec)
+                </label>
+                <input type="file" id="load-input" accept=".dec" style="display:none;">
+                
+                <button type="button" id="save-btn" class="btn btn-secondary">
+                    <span class="material-symbols-outlined">save</span>Sauvegarder Projet
+                </button>
+            </div>
+            
+            <div class="action-bar-right">
+                <span id="loader">Génération en cours...</span>
+                <button type="button" id="finish-btn" class="btn btn-success">
+                    <span class="material-symbols-outlined">picture_as_pdf</span>Prévisualiser et Générer le PDF
+                </button>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- PDF Preview Modal -->
+    <div id="pdf-preview-modal">
+        <div class="pdf-preview-content">
+            <div class="pdf-preview-header">
+                <h3>Prévisualisation du PDF</h3>
+                <div>
+                    <button id="download-pdf-btn" class="btn btn-success">
+                        <span class="material-symbols-outlined">download</span>Télécharger
+                    </button>
+                    <button id="close-preview-btn" class="btn btn-secondary">Fermer</button>
+                </div>
+            </div>
+            <div class="pdf-preview-body">
+                <iframe id="pdf-iframe"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates -->
+    <template id="composition-row-template">
+        <tr>
+            <td><input type="text" class="layer-number" readonly style="text-align: center; background-color: #f8f9fa;"></td>
+            <td><input type="text" class="layer-type" placeholder="Ex: PP (Polypropylène)" required></td>
+            <td><input type="number" class="layer-thickness" placeholder="Ex: 15" step="0.1"></td>
+            <td><textarea class="layer-info" placeholder="Ex: Couche externe, protection mécanique" rows="2"></textarea></td>
+            <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+        </tr>
+    </template>
+
+    <template id="reglementation-row-template">
+        <tr>
+            <td><input type="text" class="reg-material-type" placeholder="Ex: Adhésifs"></td>
+            <td><textarea class="reg-text-ref" placeholder="Ex: Résolution AP(2004)1 du Conseil de l'Europe" rows="2"></textarea></td>
+            <td><input type="text" class="reg-country" placeholder="Ex: Europe"></td>
+            <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+        </tr>
+    </template>
+
+    <template id="mg-row-template">
+        <tr>
+            <td>
+                <select class="mg-simulant">
+                    <option value="">Sélectionnez...</option>
+                    <option value="A">Simulant A - Éthanol 10%</option>
+                    <option value="B">Simulant B - Acide acétique 3%</option>
+                    <option value="C">Simulant C - Éthanol 20%</option>
+                    <option value="D1">Simulant D1 - Éthanol 50%</option>
+                    <option value="D2">Simulant D2 - Huile végétale</option>
+                    <option value="E">Simulant E - MPPO</option>
+                </select>
+            </td>
+            <td><input type="text" class="mg-duration" placeholder="Ex: 10 jours"></td>
+            <td><input type="text" class="mg-temperature" placeholder="Ex: 40°C"></td>
+            <td><input type="text" class="mg-result" placeholder="Ex: < 10 mg/kg"></td>
+            <td>
+                <select class="mg-conformity">
+                    <option value="">-</option>
+                    <option value="Conforme">Conforme</option>
+                    <option value="Non-conforme">Non-conforme</option>
+                </select>
+            </td>
+            <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+        </tr>
+    </template>
+
+    <template id="restriction-row-template">
+        <tr>
+            <td><input type="text" class="restriction-name" placeholder="Ex: Bisphénol A"></td>
+            <td><input type="text" class="restriction-cas" placeholder="Ex: 80-05-7"></td>
+            <td><input type="text" class="restriction-limit" placeholder="Ex: LMS < 0.05 mg/kg"></td>
+            <td><input type="text" class="restriction-text" placeholder="Ex: Règlement 2024/3190"></td>
+            <td>
+                <select class="restriction-method">
+                    <option value="">-</option>
+                    <option value="A">Analyse (A)</option>
+                    <option value="W">Worst case (W)</option>
+                    <option value="C">Calcul (C)</option>
+                    <option value="M">Modélisation (M)</option>
+                </select>
+            </td>
+            <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+        </tr>
+    </template>
+
+    <template id="dua-row-template">
+        <tr>
+            <td><input type="text" class="dua-name" placeholder="Ex: Acide sorbique"></td>
+            <td><input type="text" class="dua-num" placeholder="Ex: E200"></td>
+            <td><input type="text" class="dua-cas" placeholder="Ex: 110-44-1"></td>
+            <td><input type="text" class="dua-quantity" placeholder="Ex: 0.5% m/m"></td>
+            <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+        </tr>
+    </template>
+
+    <template id="nias-listed-row-template">
+        <tr>
+            <td><input type="text" class="nias-listed-name" placeholder="Ex: Substance X"></td>
+            <td><input type="text" class="nias-listed-id" placeholder="Ex: 123-45-6"></td>
+            <td><input type="text" class="nias-listed-ref" placeholder="Ex: BfR Recommendation XXXVI"></td>
+            <td><input type="text" class="nias-listed-qty" placeholder="Ex: < 1%"></td>
+            <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+        </tr>
+    </template>
+
+    <template id="nias-row-template">
+        <tr>
+            <td><input type="text" class="nias-name" placeholder="Ex: Produit de dégradation"></td>
+            <td><input type="text" class="nias-id" placeholder="Ex: CAS ou autre ID"></td>
+            <td><textarea class="nias-comments" placeholder="Quantités détectées, évaluation toxicologique, conclusion" rows="2"></textarea></td>
+            <td><button type="button" class="remove-row-btn"><span class="material-symbols-outlined">delete</span></button></td>
+        </tr>
+    </template>
+
+    <script src="logo.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
