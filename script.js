@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const nextBtn = document.getElementById('next-btn');
     const prevBtn = document.getElementById('prev-btn');
+    const finishBtn = document.getElementById('finish-btn'); // Get reference to finish button
     const formSections = document.querySelectorAll('.section');
     const stepperItems = document.querySelectorAll('#stepper-nav li');
     
     let currentStep = 1;
-    const totalSteps = formSections.length;
+    const totalFormSections = formSections.length; // Renamed to avoid confusion with total steps in stepper
 
     function updateFormView() {
         // Hide all sections
@@ -25,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (parseInt(item.dataset.step) === currentStep) {
                 item.classList.add('active');
             }
+            // Also activate step 9 if on the last form section (step 8)
+            if (currentStep === totalFormSections && parseInt(item.dataset.step) === (totalFormSections + 1)) {
+                item.classList.add('active');
+            }
         });
         
         // Update button visibility
@@ -34,10 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
             prevBtn.style.display = 'flex';
         }
         
-        if (currentStep === totalSteps) {
-            nextBtn.style.display = 'none';
+        if (currentStep === totalFormSections) { // If on the last actual form section (step 8)
+            nextBtn.style.display = 'none'; // Hide the regular next button
+            finishBtn.style.display = 'flex'; // Show the PDF generation button
         } else {
-            nextBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex'; // Show the regular next button
+            finishBtn.style.display = 'none'; // Hide the PDF generation button
         }
     }
 
@@ -59,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     nextBtn.addEventListener('click', () => {
-        if (validateStep(currentStep) && currentStep < totalSteps) {
+        if (validateStep(currentStep) && currentStep < totalFormSections) { // Corrected variable name
             currentStep++;
             updateFormView();
         }
@@ -497,13 +504,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // PDF Generation Logic
-    const finishBtn = document.getElementById('finish-btn');
+    // finishBtn is already declared at the top of the script
     const pdfPreviewModal = document.getElementById('pdf-preview-modal');
     const pdfIframe = document.getElementById('pdf-iframe');
     const closePreviewBtn = document.getElementById('close-preview-btn');
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
     const loader = document.getElementById('loader');
 
+    // PDF Generation Logic is now handled by the finishBtn, which is shown on the last step
     finishBtn.addEventListener('click', async () => {
         loader.style.display = 'inline-block';
         const formData = collectFormData();
@@ -776,6 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = 6; // As per requirement
 
         // Page 1
+        doc.setPage(currentPage); // Explicitly set current page
         addPageElements(currentPage, totalPages);
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(14);
@@ -814,6 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Page 2
         doc.addPage();
         currentPage++;
+        doc.setPage(currentPage); // Explicitly set current page
         addPageElements(currentPage, totalPages);
         y = margin; // Reset y for new page
 
@@ -870,6 +880,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Page 3
         doc.addPage();
         currentPage++;
+        doc.setPage(currentPage); // Explicitly set current page
         addPageElements(currentPage, totalPages);
         y = margin; // Reset y for new page
 
@@ -914,6 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Page 4
         doc.addPage();
         currentPage++;
+        doc.setPage(currentPage); // Explicitly set current page
         addPageElements(currentPage, totalPages);
         y = margin; // Reset y for new page
 
@@ -948,6 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Page 5
         doc.addPage();
         currentPage++;
+        doc.setPage(currentPage); // Explicitly set current page
         addPageElements(currentPage, totalPages);
         y = margin; // Reset y for new page
 
@@ -990,6 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Page 6
         doc.addPage();
         currentPage++;
+        doc.setPage(currentPage); // Explicitly set current page
         addPageElements(currentPage, totalPages);
         y = margin; // Reset y for new page
 
@@ -1004,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addField('Fait à', formData['doc-location']);
         addField('Le', formData['doc-date']);
         
-        checkPageBreak(50); // Ensure space for signature
+        checkPageBreak(80); // Increased space for signature to prevent overflow
         doc.setFont('Helvetica', 'normal');
         doc.setFontSize(10);
         doc.text('(Signature et cachet de la société)', margin, y + 20);
