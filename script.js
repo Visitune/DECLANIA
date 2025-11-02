@@ -608,317 +608,412 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function generatePdf(formData) {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'pt', 'a4');
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        let y = 40;
+        const margin = 20;
+        let y = margin; // Start content below header margin
+        const lineHeight = 5; // Base line height for normal text
 
-        const addHeader = () => {
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('Déclaration de Conformité', 150, 40);
+        // Helper to add header and footer on each page
+        const addPageElements = (pageNumber, totalPages) => {
+            // Header
+            doc.setFont('Helvetica', 'normal');
             doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('Conforme au Règlement (CE) n°1935/2004', 150, 55);
-            return 70; // New starting y for content
+            // Removed "LOGO DE L'ENTREPRISE" as requested
+            doc.text('Septembre 2025', pageWidth - margin, 15, { align: 'right' });
+
+            // Footer
+            doc.text('ANIA / Plateforme Aliment Emballage', margin, pageHeight - 15);
+            doc.text(`${pageNumber}/${totalPages}`, pageWidth - margin, pageHeight - 15, { align: 'right' });
         };
 
-        const addFooter = () => {
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.text(`Page ${i} sur ${pageCount}`, doc.internal.pageSize.width / 2, pageHeight - 20, { align: 'center' });
-            }
-        };
-
-        const checkPageBreak = (height) => {
-            if (y + height > pageHeight - 40) {
+        // Helper for page breaks
+        const checkPageBreak = (heightNeeded) => {
+            if (y + heightNeeded > pageHeight - margin) {
                 doc.addPage();
-                y = addHeader(); // Update y with the returned value
+                y = margin; // Reset y for new page content
             }
         };
 
+        // Helper for section titles
         const addSectionTitle = (title) => {
-            checkPageBreak(30);
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text(title, 40, y);
-            y += 20;
-        };
-
-        const addField = (label, value) => {
-            if (value) {
-                const textHeight = doc.getTextDimensions(value, { maxWidth: 400 }).h;
-                checkPageBreak(textHeight + 10); // Add some padding
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'bold');
-                doc.text(label, 40, y);
-                doc.setFont(undefined, 'normal');
-                doc.text(value, 150, y, { maxWidth: 400 });
-                y += textHeight + 10; // Consistent spacing
-            }
-        };
-
-        const addParagraph = (text) => {
-            const textHeight = doc.getTextDimensions(text, { maxWidth: 500 }).h;
-            checkPageBreak(textHeight + 10); // Check page break for the text
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(12);
+            const titleOptions = { maxWidth: pageWidth - 2 * margin, lineHeightFactor: 1.2 };
+            const dimensions = doc.getTextDimensions(title, titleOptions);
+            checkPageBreak(dimensions.h + 10); // Estimate height for title + spacing
+            doc.text(title, margin, y, titleOptions);
+            y += dimensions.h + 10; // Space after title
+            doc.setFont('Helvetica', 'normal'); // Reset font for next content
             doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(text, 40, y, { maxWidth: 500, lineHeightFactor: 1.2 });
-            y += textHeight + 10;
         };
 
-        y = addHeader();
+        // Helper for paragraphs
+        const addParagraph = (text) => {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(10);
+            const textOptions = { maxWidth: pageWidth - 2 * margin, align: 'justify', lineHeightFactor: 1.2 };
+            const dimensions = doc.getTextDimensions(text, textOptions);
+            checkPageBreak(dimensions.h + 5); // Add 5mm padding after paragraph
+            doc.text(text, margin, y, textOptions);
+            y += dimensions.h + 5;
+        };
+
+        // Helper for fields (label: value)
+        const addField = (label, value, isBoldLabel = false) => {
+            if (!value) value = ''; // Ensure value is not undefined
+            const labelText = isBoldLabel ? label : label; // Bold handled by font setting
+            const valueText = String(value); // Ensure value is string
+
+            doc.setFont('Helvetica', isBoldLabel ? 'bold' : 'normal');
+            doc.setFontSize(10);
+            const labelWidth = doc.getTextWidth(labelText);
+
+            // Calculate remaining width for value
+            const availableWidthForValue = pageWidth - 2 * margin - labelWidth - 5; // 5mm padding
+
+            // Calculate dimensions for the value text
+            const valueTextOptions = { maxWidth: availableWidthForValue, lineHeightFactor: 1.2 };
+            const valueDimensions = doc.getTextDimensions(valueText, valueTextOptions);
+
+            const totalHeight = Math.max(lineHeight, valueDimensions.h); // Use valueDimensions.h for height
+
+            checkPageBreak(totalHeight + 5);
+
+            doc.text(labelText, margin, y);
+            doc.setFont('Helvetica', 'normal'); // Value is always normal
+            doc.text(valueText, margin + labelWidth + 5, y, valueTextOptions);
+            y += totalHeight + 5;
+        };
+
+        // Helper for input lines (label: ...........)
+        const addInputLine = (label, value = '') => {
+            const labelText = label;
+            const valueText = String(value);
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(10);
+            const labelWidth = doc.getTextWidth(labelText);
+            const startX = margin + labelWidth + 2; // 2mm space after label
+            const endX = pageWidth - margin;
+            const lineLength = endX - startX;
+
+            checkPageBreak(lineHeight + 5);
+
+            doc.text(labelText, margin, y);
+            if (valueText) {
+                doc.text(valueText, startX, y);
+            } else {
+                // Draw a dotted line
+                doc.setLineDash([1, 1], 0); // 1mm line, 1mm space
+                doc.line(startX, y + 1, endX, y + 1); // Draw line slightly below text baseline
+                doc.setLineDash([], 0); // Reset line dash
+            }
+            y += lineHeight + 5;
+        };
+
+        // Helper for checkboxes
+        const addCheckbox = (label, isChecked = false) => {
+            const boxSize = 3;
+            checkPageBreak(boxSize + 2);
+            doc.rect(margin, y - boxSize / 2, boxSize, boxSize); // Draw square
+            if (isChecked) {
+                // Draw a cross (X)
+                doc.line(margin, y - boxSize / 2, margin + boxSize, y + boxSize / 2);
+                doc.line(margin + boxSize, y - boxSize / 2, margin, y + boxSize / 2);
+            }
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.text(label, margin + boxSize + 5, y);
+            y += lineHeight + 5;
+        };
+
+        // Helper for drawing tables
+        const addTable = (head, body, columnWidths) => {
+            checkPageBreak(30 + (body.length * 10)); // Estimate table height
+
+            doc.autoTable({
+                startY: y,
+                head: [head],
+                body: body,
+                theme: 'grid',
+                styles: {
+                    font: 'Helvetica',
+                    fontSize: 9,
+                    cellPadding: 2,
+                    lineColor: 0,
+                    lineWidth: 0.1
+                },
+                headStyles: {
+                    fillColor: [255, 255, 255], // White background
+                    textColor: [0, 0, 0], // Black text
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle'
+                },
+                bodyStyles: {
+                    halign: 'left',
+                    valign: 'middle'
+                },
+                columnStyles: columnWidths ? columnWidths.map((width, index) => ({
+                    0: { cellWidth: width }, // Apply width to column 0, 1, etc.
+                    // This is a simplified way, for more complex column styling,
+                    // you might need to map column indices to specific styles.
+                })) : {},
+                didDrawPage: (data) => {
+                    // This callback is called after each page of the table is drawn
+                    // It allows us to add headers/footers to new pages created by autoTable
+                    if (data.pageNumber > 1) {
+                        addPageElements(data.pageNumber, 6); // Re-add header/footer for new pages
+                    }
+                }
+            });
+            y = doc.autoTable.previous.finalY + 10; // Update y position after table
+        };
+
+        // --- Document Generation ---
+        let currentPage = 1;
+        const totalPages = 6; // As per requirement
+
+        // Page 1
+        addPageElements(currentPage, totalPages);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text('DECLARATION DE CONFORMITE', pageWidth / 2, y + 10, { align: 'center' });
+        y += 20;
 
         addParagraph('Le présent modèle de déclaration de conformité, proposée par la plateforme PAE et accompagnée d’une notice explicative disponible sur le site internet de l’ANIA, est mise à disposition à titre purement indicatif. Son objectif est de faciliter les relations entre fournisseurs et acheteurs de matériaux, d’emballages et d’objets (hors équipements) entrant ou susceptibles d’entrer en contact avec des denrées alimentaires. Ce modèle vise à les éclairer dans leur démarche de mise en conformité aux obligations prévues par les articles 3 et 16 du règlement (CE) n°1935/2004 et dans les textes spécifiques pertinents (voir partie 5).');
         addParagraph('Conformément aux principes du droit de la concurrence, chaque entreprise reste pleinement libre d’adopter, de modifier ou de remplacer ce modèle par un document de sa propre conception, selon ses besoins et sa situation particulière. L’utilisation de ce modèle est strictement facultative et n’est en aucun cas imposée par la plateforme PAE ou toute autre entité.');
         addParagraph('Chaque déclarant est responsable des déclarations réalisées sachant qu’en aucun cas la responsabilité de la plateforme ne saurait être engagée.');
 
-        // Section 1
         addSectionTitle('1. Identité de l\'exploitant qui établit la déclaration');
         addField('Madame / Monsieur :', `${formData['declarant-civility'] || ''} ${formData['declarant-firstname'] || ''} ${formData['declarant-lastname'] || ''}`);
         addField('Fonction :', formData['declarant-function']);
         addField('Nom et adresse de la Société :', `${formData['declarant-company'] || ''}\n${formData['declarant-address'] || ''}`);
+        addInputLine('Téléphone :', formData['declarant-phone']);
+        addInputLine('E-mail :', formData['declarant-email']);
+        addInputLine('N° SIRET :', formData['declarant-siret']);
 
-        // Section 2
         addSectionTitle('2. Identité de l\'exploitant qui fabrique ou importe le matériau et/ou l\'objet faisant l\'objet de la déclaration (si différent)');
         if (formData['same-as-declarant'] && formData['same-as-declarant'].includes('on')) {
             addParagraph("Le fabricant/importateur est le même que le déclarant.");
         } else {
             addField('Nom et adresse de la Société :', `${formData['fabricant-company'] || ''}\n${formData['fabricant-address'] || ''}`);
-            addParagraph(`Préciser : ${formData['fabricant-type'] || ''}`);
+            addCheckbox('Fabricant', formData['fabricant-type'] === 'fabricant');
+            addCheckbox('Importateur', formData['fabricant-type'] === 'importateur');
+            addInputLine('Téléphone :', formData['fabricant-phone']);
+            addInputLine('E-mail :', formData['fabricant-email']);
+            addInputLine('N° SIRET :', formData['fabricant-siret']);
         }
 
-        // Section 3
         addSectionTitle('3. Identification du matériau et/ou objet faisant l\'objet de la déclaration');
-        addField('Description', formData['material-description']);
+        addField('Description :', formData['material-description']);
         addField('Référence(s) commerciale(s) ou client :', formData['material-ref']);
         addParagraph('Composition structurelle détaillée :');
-        if (formData['composition-table'] && formData['composition-table'].length > 0) {
-            doc.autoTable({
-                startY: y,
-                head: [['N° Couche', 'Type de matériau/Description', 'Épaisseur (µm)', 'Informations complémentaires']],
-                body: formData['composition-table'].map(r => [r.number, r.type, r.thickness, r.info]),
-                theme: 'striped',
-                headStyles: { fillColor: [0, 90, 158] },
-                didDrawPage: (data) => { y = data.cursor.y; if (data.pageNumber > 1) addHeader(); }
-            });
-            y = doc.autoTable.previous.finalY + 20;
-        }
+
+        // Page 2
+        doc.addPage();
+        currentPage++;
+        addPageElements(currentPage, totalPages);
+        y = margin; // Reset y for new page
+
+        // Table for composition
+        const compositionHead = ['N° Couche', 'Type de matériau/Description', 'Épaisseur (µm)', 'Informations complémentaires'];
+        const compositionBody = formData['composition-table'] && formData['composition-table'].length > 0 ?
+            formData['composition-table'].map(r => [r.number, r.type, r.thickness, r.info]) :
+            [['', '', '', '']]; // Default empty row
+        addTable(compositionHead, compositionBody, [20, 60, 40, 70]); // Example column widths
+
         addField('Montage de l’emballage (collage, soudure, assemblage) :', formData['material-assembly']);
 
-        // Section 4
         addSectionTitle('4. Barrière fonctionnelle (dans le cas des matériaux multicouches)');
-        if (formData['no-bf-concerned'] && formData['no-bf-concerned'].includes('on')) {
-            addParagraph("Non concerné par une barrière fonctionnelle.");
-        } else {
-            if (formData['bf-type'] && formData['bf-type'].length > 0) addParagraph(`Type de matériau avec barrière fonctionnelle : ${formData['bf-type'].join(', ')}`);
-            if (formData['bf-only-behind'] && formData['bf-only-behind'].includes('on')) addParagraph('Le matériau faisant l\'objet de cette déclaration doit être utilisé UNIQUEMENT derrière une barrière fonctionnelle');
-            if (formData['bf-other-material'] && formData['bf-other-material'].includes('on')) addField('Autres matériaux avec barrière', formData['bf-other-description']);
-            addField('Description de la couche barrière fonctionnelle', formData['bf-layer-description']);
-            addField('Vérification de l\'efficacité de la barrière', formData['bf-compliance-test']);
+        addCheckbox('Non concerné par une barrière fonctionnelle', formData['no-bf-concerned'] && formData['no-bf-concerned'].includes('on'));
+        if (!(formData['no-bf-concerned'] && formData['no-bf-concerned'].includes('on'))) {
+            addField('Type de matériau avec barrière fonctionnelle :', formData['bf-type'] ? formData['bf-type'].join(', ') : '');
+            addCheckbox('Le matériau faisant l\'objet de cette déclaration doit être utilisé UNIQUEMENT derrière une barrière fonctionnelle', formData['bf-only-behind'] && formData['bf-only-behind'].includes('on'));
+            addCheckbox('Autres matériaux avec barrière', formData['bf-other-material'] && formData['bf-other-material'].includes('on'));
+            if (formData['bf-other-material'] && formData['bf-other-material'].includes('on')) {
+                addField('Préciser :', formData['bf-other-description']);
+            }
+            addField('Description de la couche barrière fonctionnelle :', formData['bf-layer-description']);
+            addField('Vérification de l\'efficacité de la barrière :', formData['bf-compliance-test']);
         }
 
-        // Section 5
         addSectionTitle('5. Informations relatives à l\'utilisation finale du matériau ou de l\'objet');
-        addField('Matériau ou objet destiné à l\"alimentation infantile', formData['infant-food'] === 'yes' ? '• Oui' : '• Non');
-        addParagraph('Type de denrée alimentaire destinée à être mise en contact :');
-        if (formData['all-food-types'] && formData['all-food-types'].includes('on')) {
-            doc.text('• Tous types de denrées', 40, y); y += 20;
-        } else {
-            if (formData['food-type'] && formData['food-type'].includes('dry')) {
-                doc.text('• Denrées sèches et assimilées', 40, y); y += 20;
-            }
-            if (formData['food-type'] && formData['food-type'].includes('aqueous')) {
-                doc.text('• Denrées humides/produits aqueux', 40, y); y += 20;
-            }
-            if (formData['food-type'] && formData['food-type'].includes('acidic')) {
-                doc.text('• Denrées acides (ph ≤ 4,5)', 40, y); y += 20;
-            }
-            if (formData['food-type'] && formData['food-type'].includes('alcoholic')) {
-                addField('• Denrées alcooliques – Préciser le degré d’alcool :', formData['alcohol-degree']);
-            }
-            if (formData['food-type'] && formData['food-type'].includes('frozen')) {
-                addField('• Denrées congelées et surgelées - Préciser si les denrées sont congelées/surgelées dans leurs emballages ou hors de leurs emballages, et si elles sont destinées à être décongelées dans ou hors de leurs emballages :', formData['frozen-conditions']);
-            }
-            if (formData['food-type'] && formData['food-type'].includes('fatty')) {
-                addParagraph('• Denrées grasses :');
-                addParagraph('Si le matériau et/ou objet soumis au Règlement (UE) n°10/2011 est concerné par l’application d’un facteur de réduction, le mentionner :');
-                if (formData['frtmg-applied'] && formData['frtmg-applied'].includes('on')) {
-                    doc.text('• Facteur de Réduction lié à la Teneur en Matière Grasse (FRTMG)', 40, y); y += 20;
-                }
-                if (formData['simulant-d2-applied'] && formData['simulant-d2-applied'].includes('on')) {
-                    doc.text('• Facteur de réduction lié au simulant D2', 40, y); y += 20;
-                }
-            }
-            addField('• Autres (préciser) :', formData['other-food-types']);
+        addField('Matériau ou objet destiné à l\'alimentation infantile :', formData['infant-food'] === 'yes' ? 'Oui' : 'Non');
+        if (formData['infant-food'] === 'yes') {
+            addInputLine('Préciser la migration globale spécifique (mg/kg) :', formData['infant-mg-info']);
         }
+        addParagraph('Type de denrée alimentaire destinée à être mise en contact :');
+        addCheckbox('Tous types de denrées', formData['all-food-types'] && formData['all-food-types'].includes('on'));
+        if (!(formData['all-food-types'] && formData['all-food-types'].includes('on'))) {
+            addCheckbox('Denrées sèches et assimilées', formData['food-type'] && formData['food-type'].includes('dry'));
+            addCheckbox('Denrées humides/produits aqueux', formData['food-type'] && formData['food-type'].includes('aqueous'));
+            addCheckbox('Denrées acides (ph ≤ 4,5)', formData['food-type'] && formData['food-type'].includes('acidic'));
+            addCheckbox('Denrées alcooliques', formData['food-type'] && formData['food-type'].includes('alcoholic'));
+            if (formData['food-type'] && formData['food-type'].includes('alcoholic')) {
+                addInputLine('Préciser le degré d’alcool :', formData['alcohol-degree']);
+            }
+            addCheckbox('Denrées congelées et surgelées', formData['food-type'] && formData['food-type'].includes('frozen'));
+            if (formData['food-type'] && formData['food-type'].includes('frozen')) {
+                addField('Préciser si les denrées sont congelées/surgelées dans leurs emballages ou hors de leurs emballages, et si elles sont destinées à être décongelées dans ou hors de leurs emballages :', formData['frozen-conditions']);
+            }
+            addCheckbox('Denrées grasses', formData['food-type'] && formData['food-type'].includes('fatty'));
+            if (formData['food-type'] && formData['food-type'].includes('fatty')) {
+                addParagraph('Si le matériau et/ou objet soumis au Règlement (UE) n°10/2011 est concerné par l’application d’un facteur de réduction, le mentionner :');
+                addCheckbox('Facteur de Réduction lié à la Teneur en Matière Grasse (FRTMG)', formData['frtmg-applied'] && formData['frtmg-applied'].includes('on'));
+                addCheckbox('Facteur de réduction lié au simulant D2', formData['simulant-d2-applied'] && formData['simulant-d2-applied'].includes('on'));
+            }
+            addField('Autres (préciser) :', formData['other-food-types']);
+        }
+
+        // Page 3
+        doc.addPage();
+        currentPage++;
+        addPageElements(currentPage, totalPages);
+        y = margin; // Reset y for new page
+
         addParagraph('Conditions normales et prévisibles de contact (durée et température)');
-        addField('Préciser', formData['usage-conditions']);
+        addField('Préciser :', formData['usage-conditions']);
         addParagraph('Rapport maximal (Surface en contact avec la denrée alimentaire) / (Volume/poids de la denrée) utilisé pour établir la conformité du matériau ou de l’objet :');
         if (formData['sv-ratio-type'] === '6') {
-            doc.text('• 6dm²/kg d\'aliment', 40, y); y += 20;
+            addCheckbox('6dm²/kg d\'aliment', true);
         } else if (formData['sv-ratio-type'] === 'custom') {
-            addField('• Autre :', formData['sv-ratio-value']);
+            addField('Autre :', formData['sv-ratio-value']);
+        } else {
+            addInputLine('Rapport S/V :', ''); // Placeholder if not selected
         }
 
-        // Section 6
         addSectionTitle('5. Références réglementaires');
         addParagraph('Le matériau et/ou objet qui fait l’objet de cette déclaration est conforme aux exigences du règlement cadre (CE) n°1935/2004/CE, du règlement (CE) n°2023/2006 (et tout autre texte réglementaire pertinent). Tout matériau ou objet relevant du champ d’application du Règlement (UE) 2024/3190 est conforme aux exigences de celui-ci.');
         addParagraph('Citer le(s) autres texte(s) concerné(s) par type de matériau et par pays :');
-        if (formData['reglementation-table'] && formData['reglementation-table'].length > 0) {
-            doc.autoTable({
-                startY: y,
-                head: [['Typologie des matières (encres, colles, papier-carton, plastique, vernis…)', 'Textes réglementaires et Textes de référence (résolution, recommandation, Guidelines EuPIA, FEICA, fiches des autorités…)', 'Europe / Etat membre']],
-                body: formData['reglementation-table'].map(r => [r.materialType, r.textRef, r.country]),
-                theme: 'striped',
-                headStyles: { fillColor: [0, 90, 158] },
-                didDrawPage: (data) => { y = data.cursor.y; addHeader(); }
-            });
-            y = doc.autoTable.previous.finalY + 20;
-        }
+
+        const reglementationHead = ['Typologie des matières (encres, colles, papier-carton, plastique, vernis…)', 'Textes réglementaires et Textes de référence (résolution, recommandation, Guidelines EuPIA, FEICA, fiches des autorités…)', 'Europe / Etat membre'];
+        const reglementationBody = formData['reglementation-table'] && formData['reglementation-table'].length > 0 ?
+            formData['reglementation-table'].map(r => [r.materialType, r.textRef, r.country]) :
+            [['', '', ''], ['', '', ''], ['', '', ''], ['', '', '']]; // 4 empty rows
+        addTable(reglementationHead, reglementationBody, [60, 90, 40]);
+
         addParagraph('Matériaux particuliers (matériaux recyclés, matériaux actifs ou intelligents)');
-        if (formData['no-special-material'] && formData['no-special-material'].includes('on')) {
-            doc.text('• Non concerné', 40, y); y += 20;
-        } else {
+        addCheckbox('Non concerné', formData['no-special-material'] && formData['no-special-material'].includes('on'));
+        if (!(formData['no-special-material'] && formData['no-special-material'].includes('on'))) {
+            addCheckbox('Règlement (CE) n°450/2009 concernant la présence de matériaux actifs ou intelligents', formData['special-material'] && formData['special-material'].includes('active'));
             if (formData['special-material'] && formData['special-material'].includes('active')) {
-                addField('• Règlement (CE) n°450/2009 concernant la présence de matériaux actifs ou intelligents, préciser la substance utilisée et le numéro mentionné dans le registre européen :', formData['active-substance-details']);
+                addField('Préciser la substance utilisée et le numéro mentionné dans le registre européen :', formData['active-substance-details']);
             }
+            addCheckbox('Règlement (UE) n°2022/1616 concernant la présence de matériaux recyclés dans les matériaux et objets plastiques et joindre la déclaration de conformité conformément au règlement n° 2022/1616.', formData['special-material'] && formData['special-material'].includes('recycled-plastic'));
             if (formData['special-material'] && formData['special-material'].includes('recycled-plastic')) {
-                addField('• Règlement (UE) n°2022/1616 concernant la présence de matériaux recyclés dans les matériaux et objets plastiques et joindre la déclaration de conformité conformément au règlement n° 2022/1616.', formData['recycled-plastic-details']);
+                addField('Préciser :', formData['recycled-plastic-details']);
             }
+            addCheckbox('Autres matériaux (recyclés autres que plastique, etc.)', formData['special-material'] && formData['special-material'].includes('recycled-other'));
             if (formData['special-material'] && formData['special-material'].includes('recycled-other')) {
-                addField('• Autres matériaux (recyclés autres que plastique, etc.) :', formData['recycled-other-details']);
+                addField('Préciser :', formData['recycled-other-details']);
             }
         }
 
-        // Section 7
+        // Page 4
+        doc.addPage();
+        currentPage++;
+        addPageElements(currentPage, totalPages);
+        y = margin; // Reset y for new page
+
         addSectionTitle('6. Informations relatives au matériau et/ou objet faisant l’objet de la déclaration');
         addParagraph('Cette déclaration de conformité a été établie au vu des éléments suivants (cocher la ou les cases correspondantes) : ');
-        if (formData['doc-basis'] && formData['doc-basis'].includes('supplier-declarations')) {
-            doc.text('• Déclarations des fournisseurs de matières premières (composant le matériau/objet)', 40, y); y += 20;
-        }
-        if (formData['doc-basis'] && formData['doc-basis'].includes('global-migration')) {
-            doc.text('• Analyses de migration globale (si concerné complétez le tableau 6.1)', 40, y); y += 20;
-        }
-        if (formData['doc-basis'] && formData['doc-basis'].includes('restricted-substances')) {
-            doc.text('• Substances soumises à restriction (si concerné complétez le tableau 6.2)', 40, y); y += 20;
-        }
-        if (formData['doc-basis'] && formData['doc-basis'].includes('dua')) {
-            doc.text('• Informations sur les additifs à double usage (si concerné complétez le tableau 6.3)', 40, y); y += 20;
-        }
-        if (formData['doc-basis'] && formData['doc-basis'].includes('nias-listed')) {
-            doc.text('• Evaluation des substances non listées intentionnellement ajoutées (si concerné complétez le tableau 6.4)', 40, y); y += 20;
-        }
-        if (formData['doc-basis'] && formData['doc-basis'].includes('nias')) {
-            doc.text('• Evaluation des substances non intentionnellement ajoutées (si concerné complétez le tableau 6.5)', 40, y); y += 20;
-        }
-        if (formData['doc-basis'] && formData['doc-basis'].includes('sensory')) {
-            doc.text('• Test(s) sensoriel(s) (complétez le point 6.6)', 40, y); y += 20;
-        }
+        addCheckbox('Déclarations des fournisseurs de matières premières (composant le matériau/objet)', formData['doc-basis'] && formData['doc-basis'].includes('supplier-declarations'));
+        addCheckbox('Analyses de migration globale (si concerné complétez le tableau 6.1)', formData['doc-basis'] && formData['doc-basis'].includes('global-migration'));
+        addCheckbox('Substances soumises à restriction (si concerné complétez le tableau 6.2)', formData['doc-basis'] && formData['doc-basis'].includes('restricted-substances'));
+        addCheckbox('Informations sur les additifs à double usage (si concerné complétez le tableau 6.3)', formData['doc-basis'] && formData['doc-basis'].includes('dua'));
+        addCheckbox('Evaluation des substances non listées intentionnellement ajoutées (si concerné complétez le tableau 6.4)', formData['doc-basis'] && formData['doc-basis'].includes('nias-listed'));
+        addCheckbox('Evaluation des substances non intentionnellement ajoutées (si concerné complétez le tableau 6.5)', formData['doc-basis'] && formData['doc-basis'].includes('nias'));
+        addCheckbox('Test(s) sensoriel(s) (complétez le point 6.6)', formData['doc-basis'] && formData['doc-basis'].includes('sensory'));
 
         addSectionTitle('6.1 Analyse de migration globale');
-        if (formData['migration-globale-table'] && formData['migration-globale-table'].length > 0) {
-            doc.autoTable({
-                startY: y,
-                head: [['Simulant', 'Durée', 'Température', 'Résultat', 'Conforme / Non-conforme']],
-                body: formData['migration-globale-table'].map(r => [r.simulant, r.duration, r.temperature, r.result, r.conformity]),
-                theme: 'striped',
-                headStyles: { fillColor: [0, 90, 158] },
-                didDrawPage: (data) => { y = data.cursor.y; addHeader(); }
-            });
-            y = doc.autoTable.previous.finalY + 20;
-        }
+        const mgHead = ['Simulant', 'Durée', 'Température', 'Résultat', 'Conforme / Non-conforme'];
+        const mgBody = formData['migration-globale-table'] && formData['migration-globale-table'].length > 0 ?
+            formData['migration-globale-table'].map(r => [r.simulant, r.duration, r.temperature, r.result, r.conformity]) :
+            [['', '', '', '', '']];
+        addTable(mgHead, mgBody, [35, 30, 35, 35, 55]);
 
         addSectionTitle('6.2 Informations sur les substances soumises à restriction (pureté, LMS, etc. - se référer à la notice pour l’explicitation de ces substances)');
         addParagraph('Préciser ci-après la (ou les) substance(s) sujette(s) à restriction et la (ou les) limite(s) admissible(s)');
-        if (formData['restrictions-table'] && formData['restrictions-table'].length > 0) {
-            doc.autoTable({
-                startY: y,
-                head: [['Noms', 'Identification Numéro ref. CEE ou CAS', 'Limites (Préciser l’unité et le type de limite)', 'Texte de référence', 'A*', 'W*', 'C*', 'M*']],
-                body: formData['restrictions-table'].map(r => [r.name, r.cas, r.limit, r.textRef, r.method === 'A' ? 'X' : '', r.method === 'W' ? 'X' : '', r.method === 'C' ? 'X' : '', r.method === 'M' ? 'X' : '']),
-                theme: 'striped',
-                headStyles: { fillColor: [0, 90, 158] },
-                didDrawPage: (data) => { y = data.cursor.y; addHeader(); }
-            });
-            y = doc.autoTable.previous.finalY + 20;
-        }
+        const restrictionsHead = ['Noms', 'Identification Numéro ref. CEE ou CAS', 'Limites (Préciser l’unité et le type de limite)', 'Texte de référence', 'A*', 'W*', 'C*', 'M*'];
+        const restrictionsBody = formData['restrictions-table'] && formData['restrictions-table'].length > 0 ?
+            formData['restrictions-table'].map(r => [r.name, r.cas, r.limit, r.textRef, r.method === 'A' ? 'X' : '', r.method === 'W' ? 'X' : '', r.method === 'C' ? 'X' : '', r.method === 'M' ? 'X' : '']) :
+            [['', '', '', '', '', '', '', '']];
+        addTable(restrictionsHead, restrictionsBody, [30, 40, 40, 40, 10, 10, 10, 10]);
         addParagraph('* le respect de ces limites a été établi par : cochez la case correspondante analyse (A), Worst case (W), calcul (C) ou modélisation (M) : obligation induite (article 16 du Règlement (UE) 10/2011)');
         addField('En cas de réalisation de tests, préciser les simulants et conditions de test :', formData['restrictions-test-conditions']);
         addField('Si non rempli, préciser les raisons - renvoyer aux documents de référence :', formData['restrictions-not-filled-reason']);
 
+        // Page 5
+        doc.addPage();
+        currentPage++;
+        addPageElements(currentPage, totalPages);
+        y = margin; // Reset y for new page
+
         addSectionTitle('6.3 Informations sur les additifs à double usage');
         addParagraph('• Si concerné, préciser ci-dessous la (ou les) substance(s) concernée(s) :');
-        if (formData['dua-table'] && formData['dua-table'].length > 0) {
-            doc.autoTable({
-                startY: y,
-                head: [['Noms', 'Identification : numéro E ou FL', 'N°CAS', 'Optionnel : Teneurs mises en œuvre']],
-                body: formData['dua-table'].map(r => [r.name, r.eNum, r.cas, r.quantity]),
-                theme: 'striped',
-                headStyles: { fillColor: [0, 90, 158] },
-                didDrawPage: (data) => { y = data.cursor.y; addHeader(); }
-            });
-            y = doc.autoTable.previous.finalY + 20;
-        }
+        const duaHead = ['Noms', 'Identification : numéro E ou FL', 'N°CAS', 'Optionnel : Teneurs mises en œuvre'];
+        const duaBody = formData['dua-table'] && formData['dua-table'].length > 0 ?
+            formData['dua-table'].map(r => [r.name, r.eNum, r.cas, r.quantity]) :
+            [['', '', '', '']];
+        addTable(duaHead, duaBody, [50, 50, 40, 50]);
 
         addSectionTitle('6.4 Evaluation des substances non listées intentionnellement ajoutées');
-        if (formData['nias-listed-eval-done'] && formData['nias-listed-eval-done'].includes('on')) {
-            doc.text('• Evaluation des risques (Article 3 du Règlement (CE) n° 1935/2004) effectuée', 40, y); y += 20;
-        } else {
+        addCheckbox('Evaluation des risques (Article 3 du Règlement (CE) n° 1935/2004) effectuée', formData['nias-listed-eval-done'] && formData['nias-listed-eval-done'].includes('on'));
+        if (!(formData['nias-listed-eval-done'] && formData['nias-listed-eval-done'].includes('on'))) {
             addParagraph('• A défaut, lister les substances et informations pertinentes pour l’évaluation des risques');
-            if (formData['nias-listed-table'] && formData['nias-listed-table'].length > 0) {
-                doc.autoTable({
-                    startY: y,
-                    head: [['Nom', 'Identification CAS - EINECS – N° de Référence MCDA', 'Texte de référence', 'Quantité max. (%) dans matériau, emballage ou objet']],
-                    body: formData['nias-listed-table'].map(r => [r.name, r.id, r.ref, r.qty]),
-                    theme: 'striped',
-                    headStyles: { fillColor: [0, 90, 158] },
-                    didDrawPage: (data) => { y = data.cursor.y; addHeader(); }
-                });
-                y = doc.autoTable.previous.finalY + 20;
-            }
+            const niasListedHead = ['Nom', 'Identification CAS - EINECS – N° de Référence MCDA', 'Texte de référence', 'Quantité max. (%) dans matériau, emballage ou objet'];
+            const niasListedBody = formData['nias-listed-table'] && formData['nias-listed-table'].length > 0 ?
+                formData['nias-listed-table'].map(r => [r.name, r.id, r.ref, r.qty]) :
+                [['', '', '', '']];
+            addTable(niasListedHead, niasListedBody, [40, 60, 50, 40]);
         }
 
         addSectionTitle('6.5 Evaluation des substances non intentionnellement ajoutées');
-        if (formData['nias-eval-done'] && formData['nias-eval-done'].includes('on')) {
-            doc.text('• Evaluation des risques (Article 3 du Règlement (CE) n° 1935/2004) effectuée', 40, y); y += 20;
-        } else {
+        addCheckbox('Evaluation des risques (Article 3 du Règlement (CE) n° 1935/2004) effectuée', formData['nias-eval-done'] && formData['nias-eval-done'].includes('on'));
+        if (!(formData['nias-eval-done'] && formData['nias-eval-done'].includes('on'))) {
             addParagraph('• A défaut, lister substances et informations pertinentes pour l’évaluation des risques');
-            if (formData['nias-table'] && formData['nias-table'].length > 0) {
-                doc.autoTable({
-                    startY: y,
-                    head: [['Nom', 'Identification CAS - EINECS – N° de Réf. MCDA', 'Commentaires (quantités, tests…)']],
-                    body: formData['nias-table'].map(r => [r.name, r.id, r.comments]),
-                    theme: 'striped',
-                    headStyles: { fillColor: [0, 90, 158] },
-                    didDrawPage: (data) => { y = data.cursor.y; addHeader(); }
-                });
-                y = doc.autoTable.previous.finalY + 20;
-            }
+            const niasHead = ['Nom', 'Identification CAS - EINECS – N° de Réf. MCDA', 'Commentaires (quantités, tests…)'];
+            const niasBody = formData['nias-table'] && formData['nias-table'].length > 0 ?
+                formData['nias-table'].map(r => [r.name, r.id, r.comments]) :
+                [['', '', '']];
+            addTable(niasHead, niasBody, [50, 60, 80]);
         }
 
         addSectionTitle('6.6 Test(s) sensoriel(s)');
+        addCheckbox('Test réalisé :', formData['sensory-test-done'] && formData['sensory-test-done'].includes('on'));
         if (formData['sensory-test-done'] && formData['sensory-test-done'].includes('on')) {
-            doc.text('• Test réalisé :', 40, y); y += 20;
-            addField('', formData['sensory-test-details']);
+            addField('Détails :', formData['sensory-test-details']);
         }
 
-        // Section 8
+        // Page 6
+        doc.addPage();
+        currentPage++;
+        addPageElements(currentPage, totalPages);
+        y = margin; // Reset y for new page
+
         addSectionTitle('8. Pièces jointes - Documents justificatifs');
         addParagraph('Fichiers joints : ' + (formData['attached-files'] ? formData['attached-files'].join(', ') : 'Aucun'));
 
-        // Section 9
         addSectionTitle('7. Signature et validité');
+        addParagraph('La présente déclaration de conformité est valable tant qu’il n’y a pas de modification substantielle de la composition du matériau et/ou de l’objet, ou de la réglementation applicable, ou des conditions d’utilisation prévues.');
+        addParagraph('Elle est établie sur la base des connaissances actuelles et des informations fournies par nos fournisseurs. Elle n’exonère en aucun cas l’utilisateur de vérifier l’aptitude du matériau et/ou de l’objet à l’usage spécifique auquel il le destine, notamment en ce qui concerne les conditions de contact, la durée et la température.');
+        addParagraph('Toute reproduction partielle ou totale de cette déclaration doit être accompagnée de l’intégralité des pages.');
+
         addField('Fait à', formData['doc-location']);
         addField('Le', formData['doc-date']);
-        if (formData.signature) {
-            checkPageBreak(100);
-            doc.text('(Signature et cachet de la société)', 40, y); // Static text for signature
-            doc.addImage(formData.signature, 'PNG', 40, y + 10, 150, 75);
-            y += 100;
-        }
+        
+        checkPageBreak(50); // Ensure space for signature
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text('(Signature et cachet de la société)', margin, y + 20);
+        // If a signature image is available in formData, you can add it here.
+        // For now, it's a placeholder.
+        // if (formData.signature) {
+        //     doc.addImage(formData.signature, 'PNG', margin, y + 30, 50, 25);
+        // }
 
-        addFooter();
         return doc;
     }
 
